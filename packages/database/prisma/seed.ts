@@ -10,9 +10,7 @@ async function main() {
   console.log("seeded.");
 }
 
-try {
-  await main();
-} catch (error) {
+main().catch(async (error) => {
   console.log(error);
   await prisma.$disconnect();
-}
+});

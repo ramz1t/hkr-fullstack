@@ -1,6 +1,5 @@
 {
   "name": "@repo/database",
-  "type": "module",
   "version": "1.0.0",
   "exports": {
     ".": "./dist/src/index.js"
