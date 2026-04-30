@@ -7,10 +7,86 @@ generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
 }
+
 datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  BET
+  WIN
+  ADJUSTMENT
+}
+
 model User {
-  id    Int     @id @default(autoincrement())
+  id               String        @id @default(uuid())
+  email            String        @unique
+  passwordHash     String
+  refreshTokenHash String?
+  role             Role          @default(USER)
+  transactions     Transaction[]
+  bets             Bet[]
+  provablyFair     ProvablyFair?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model Transaction {
+  id        String          @id @default(uuid())
+  userId    String
+  type      TransactionType
+  amount    Decimal         @db.Decimal(18, 6)
+  user      User            @relation(fields: [userId], references: [id])
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+model Game {
+  id   String  @id @default(uuid())
+  name String
+  slug String  @unique
+  rtp  Decimal @db.Decimal(5, 4)
+  bets Bet[]
+}
+
+model Bet {
+  id             String       @id @default(uuid())
+  userId         String
+  gameId         String
+  provablyFairId String
+  amount         Decimal      @db.Decimal(18, 6)
+  payout         Decimal      @db.Decimal(18, 6)
+  nonceUsed      Int
+  hash           String
+  result         Json
+  user           User         @relation(fields: [userId], references: [id])
+  game           Game         @relation(fields: [gameId], references: [id])
+  provablyFair   ProvablyFair @relation(fields: [provablyFairId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([gameId])
+}
+
+model ProvablyFair {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  serverSeedHash String
+  serverSeed     String?
+  clientSeed     String
+  nonce          Int      @default(0)
+  user           User     @relation(fields: [userId], references: [id])
+  bets           Bet[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
