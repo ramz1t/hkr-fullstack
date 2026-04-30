@@ -1,0 +1,16 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "radix-lyra",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "css": "../../apps/web-public/app/globals.css",
+    "baseColor": "mist",
+    "cssVariables": true
+  },
+  "aliases": {
+    "components": "@repo/ui/src",
+    "utils": "@repo/ui/src/utils",
+    "ui": "@repo/ui/src"
+  }
+}
