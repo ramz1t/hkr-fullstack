@@ -1,4 +1,4 @@
-# Frontend
+# Frontend (Public)
 
 ## Stack
 
