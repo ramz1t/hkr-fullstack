@@ -51,11 +51,12 @@ model Transaction {
 }
 
 model Game {
-  id   String  @id @default(uuid())
-  name String
-  slug String  @unique
-  rtp  Decimal @db.Decimal(5, 4)
-  bets Bet[]
+  id       String  @id @default(uuid())
+  name     String
+  slug     String  @unique
+  rtp      Decimal @db.Decimal(5, 4)
+  isActive Boolean
+  bets     Bet[]
 }
 
 model Bet {
