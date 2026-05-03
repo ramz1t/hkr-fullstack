@@ -26,23 +26,35 @@ enum TransactionType {
 }
 
 model User {
-  id               String        @id @default(uuid())
-  email            String        @unique
-  passwordHash     String
-  refreshTokenHash String?
-  role             Role          @default(USER)
-  transactions     Transaction[]
-  bets             Bet[]
-  provablyFair     ProvablyFair?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  isBanned     Boolean       @default(false)
+  sessions     Session[]
+  role         Role          @default(USER)
+  transactions Transaction[]
+  bets         Bet[]
+  provablyFair ProvablyFair?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Session {
+  id               String   @id @default(uuid())
+  userId           String
+  refreshTokenHash String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+
+  @@index([userId])
+  @@index([refreshTokenHash])
 }
 
 model Transaction {
   id        String          @id @default(uuid())
   userId    String
   type      TransactionType
-  amount    Decimal         @db.Decimal(18, 6)
+  amount    Int
   user      User            @relation(fields: [userId], references: [id])
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
@@ -60,20 +72,20 @@ model Game {
 }
 
 model Bet {
-  id             String       @id @default(uuid())
+  id             String        @id @default(uuid())
   userId         String
   gameId         String
   provablyFairId String
-  amount         Decimal      @db.Decimal(18, 6)
-  payout         Decimal      @db.Decimal(18, 6)
+  amount         Int
+  payout         Int
   nonceUsed      Int
   hash           String
   result         Json
-  user           User         @relation(fields: [userId], references: [id])
-  game           Game         @relation(fields: [gameId], references: [id])
-  provablyFair   ProvablyFair @relation(fields: [provablyFairId], references: [id])
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  user           User          @relation(fields: [userId], references: [id])
+  game           Game          @relation(fields: [gameId], references: [id])
+  provablyFair   ProvablyFair? @relation(fields: [provablyFairId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([userId, createdAt])
   @@index([gameId])

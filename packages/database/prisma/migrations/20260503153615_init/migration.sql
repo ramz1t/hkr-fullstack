@@ -9,7 +9,7 @@ CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "passwordHash" TEXT NOT NULL,
-    "refreshTokenHash" TEXT,
+    "isBanned" BOOLEAN NOT NULL DEFAULT false,
     "role" "Role" NOT NULL DEFAULT 'USER',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -18,11 +18,21 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
+CREATE TABLE "Session" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "refreshTokenHash" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Transaction" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "type" "TransactionType" NOT NULL,
-    "amount" DECIMAL(18,6) NOT NULL,
+    "amount" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -46,8 +56,8 @@ CREATE TABLE "Bet" (
     "userId" TEXT NOT NULL,
     "gameId" TEXT NOT NULL,
     "provablyFairId" TEXT NOT NULL,
-    "amount" DECIMAL(18,6) NOT NULL,
-    "payout" DECIMAL(18,6) NOT NULL,
+    "amount" INTEGER NOT NULL,
+    "payout" INTEGER NOT NULL,
     "nonceUsed" INTEGER NOT NULL,
     "hash" TEXT NOT NULL,
     "result" JSONB NOT NULL,
@@ -75,6 +85,12 @@ CREATE TABLE "ProvablyFair" (
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
+CREATE INDEX "Session_userId_idx" ON "Session"("userId");
+
+-- CreateIndex
+CREATE INDEX "Session_refreshTokenHash_idx" ON "Session"("refreshTokenHash");
+
+-- CreateIndex
 CREATE INDEX "Transaction_userId_createdAt_idx" ON "Transaction"("userId", "createdAt");
 
 -- CreateIndex
@@ -88,6 +104,9 @@ CREATE INDEX "Bet_gameId_idx" ON "Bet"("gameId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ProvablyFair_userId_key" ON "ProvablyFair"("userId");
+
+-- AddForeignKey
+ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
