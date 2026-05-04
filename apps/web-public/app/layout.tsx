@@ -11,7 +11,7 @@ const figtreeHeading = Figtree({
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Casino",
+  title: "CasinoApp",
   description: "Study project, HKR DA219B VT26 Fullstack Development"
 };
 
@@ -26,6 +26,7 @@ export default function RootLayout({
       className={cn(
         "h-full antialiased dark",
         "font-sans",
+        "selection:text-primary-foreground selection:bg-primary",
         inter.variable,
         figtreeHeading.variable
       )}
