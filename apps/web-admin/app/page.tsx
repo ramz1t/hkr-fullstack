@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/button";
 import {
   Card,
   CardAction,
@@ -6,27 +6,22 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+  CardTitle,
+} from "@repo/ui/card";
+import { Input } from "@repo/ui/input";
+import { Label } from "@repo/ui/label";
 import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="p-10 flex flex-col gap-10 items-center">
-      <h1 className="font-extrabold text-4xl">Casino App</h1>
+      <h1 className="font-extrabold text-4xl">Casino Admin</h1>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Login to your account</CardTitle>
           <CardDescription>
             Enter your email below to login to your account
           </CardDescription>
-          <CardAction>
-            <Button variant="link">
-              <Link href="">Sign Up</Link>
-            </Button>
-          </CardAction>
         </CardHeader>
         <CardContent>
           <form>
@@ -43,12 +38,6 @@ export default function Home() {
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
                 </div>
                 <Input id="password" type="password" required />
               </div>
@@ -58,9 +47,6 @@ export default function Home() {
         <CardFooter className="flex-col gap-2">
           <Button type="submit" className="w-full">
             Login
-          </Button>
-          <Button variant="outline" className="w-full">
-            <Link href="/admin">Admin Panel</Link>
           </Button>
         </CardFooter>
       </Card>
