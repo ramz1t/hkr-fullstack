@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  BET
+  WIN
+  ADJUSTMENT
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  isBanned     Boolean       @default(false)
+  sessions     Session[]
+  role         Role          @default(USER)
+  transactions Transaction[]
+  bets         Bet[]
+  provablyFair ProvablyFair?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Session {
+  id               String   @id @default(uuid())
+  userId           String
+  refreshTokenHash String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+
+  @@index([userId])
+  @@index([refreshTokenHash])
+}
+
+model Transaction {
+  id        String          @id @default(uuid())
+  userId    String
+  type      TransactionType
+  amount    Int
+  user      User            @relation(fields: [userId], references: [id])
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+model Game {
+  id       String  @id @default(uuid())
+  name     String
+  slug     String  @unique
+  rtp      Decimal @db.Decimal(5, 4)
+  isActive Boolean
+  bets     Bet[]
+}
+
+model Bet {
+  id             String        @id @default(uuid())
+  userId         String
+  gameId         String
+  provablyFairId String
+  amount         Int
+  payout         Int
+  nonceUsed      Int
+  hash           String
+  result         Json
+  user           User          @relation(fields: [userId], references: [id])
+  game           Game          @relation(fields: [gameId], references: [id])
+  provablyFair   ProvablyFair? @relation(fields: [provablyFairId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([gameId])
+}
+
+model ProvablyFair {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  serverSeedHash String
+  serverSeed     String?
+  clientSeed     String
+  nonce          Int      @default(0)
+  user           User     @relation(fields: [userId], references: [id])
+  bets           Bet[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
