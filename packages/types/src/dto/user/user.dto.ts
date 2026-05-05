@@ -4,4 +4,5 @@ export type UserDto = {
   id: string;
   email: string;
   role: UserRole;
+  isBanned: boolean;
 };

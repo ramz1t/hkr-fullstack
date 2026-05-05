@@ -1,8 +1,14 @@
 {
   "name": "@repo/database",
   "version": "1.0.0",
+  "types": "./dist/src/index.d.ts",
   "exports": {
-    ".": "./dist/src/index.js"
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "require": "./dist/src/index.js",
+      "import": "./dist/src/index.js",
+      "default": "./dist/src/index.js"
+    }
   },
   "scripts": {
     "dev": "tsc --watch --preserveWatchOutput",
