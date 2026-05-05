@@ -1,13 +1,12 @@
 import { Controller, Post, Body, Res, UseGuards, Req } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { ApiBody } from "@nestjs/swagger";
 import type { Response } from "express";
 import { AuthService } from "./auth.service";
-import type { LoginDto, RegisterDto, Tokens } from "@repo/types";
-import { loginSchema, registerSchema } from "@repo/types";
+import type { Tokens } from "@repo/types";
 import { JwtRefreshTokenGuard } from "../../common/guards";
-import { ZodValidationPipe } from "../../common/pipes";
 import type { RequestWithUser } from "../../common/types";
-import { ApiBody } from "@nestjs/swagger";
+import { LoginRequestDto, RegisterRequestDto } from "./dto";
 
 @Controller("auth")
 export class AuthController {
@@ -17,8 +16,9 @@ export class AuthController {
   ) {}
 
   @Post("login")
+  @ApiBody({ type: LoginRequestDto })
   async login(
-    @Body(new ZodValidationPipe(loginSchema)) dto: LoginDto,
+    @Body() dto: LoginRequestDto,
     @Res({ passthrough: true }) res: Response
   ) {
     const tokens = await this.authService.login(dto);
@@ -29,8 +29,9 @@ export class AuthController {
   }
 
   @Post("register")
+  @ApiBody({ type: RegisterRequestDto })
   async register(
-    @Body(new ZodValidationPipe(registerSchema)) dto: RegisterDto,
+    @Body() dto: RegisterRequestDto,
     @Res({ passthrough: true }) res: Response
   ) {
     const tokens = await this.authService.register(dto);

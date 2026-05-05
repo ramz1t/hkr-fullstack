@@ -3,12 +3,7 @@
   "version": "1.0.0",
   "types": "./dist/src/index.d.ts",
   "exports": {
-    ".": {
-      "types": "./dist/src/index.d.ts",
-      "require": "./dist/src/index.js",
-      "import": "./dist/src/index.js",
-      "default": "./dist/src/index.js"
-    }
+    ".": "./dist/src/index.js"
   },
   "scripts": {
     "dev": "tsc --watch --preserveWatchOutput",
