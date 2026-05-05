@@ -9,49 +9,58 @@ import {
   CardHeader,
   CardTitle
 } from "@repo/ui/card";
-import { Form } from "@repo/ui/form";
 import { FormField } from "@repo/ui/form-field";
 import { useState } from "react";
+import { loginAction, registerAction } from "@/lib/auth/actions";
 
 export function LoginForm() {
   const [tab, setTab] = useState<"login" | "register">("login");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
-  function handleSubmit(formData: FormData) {
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+  const isLogin = tab === "login";
 
-    if (tab === "login") {
-      console.log("Login:", { email, password });
-      // TODO: call login API
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setPending(true);
+    const formData = new FormData(e.currentTarget);
+    const result = await (isLogin
+      ? loginAction(formData)
+      : registerAction(formData));
+    if (result) {
+      setError(result);
+      setPending(false);
     } else {
-      console.log("Register:", { name, email, password });
-      // TODO: call register API
+      const params = new URLSearchParams(window.location.search);
+      window.location.href = params.get("callbackUrl") ?? "/profile";
     }
   }
 
   return (
     <Card className="w-full max-w-sm">
       <CardHeader>
-        <CardTitle>
-          {tab === "login" ? "Welcome back" : "Create an account"}
-        </CardTitle>
+        <CardTitle>{isLogin ? "Welcome back" : "Create an account"}</CardTitle>
         <CardDescription>
-          {tab === "login"
+          {isLogin
             ? "Enter your credentials to continue"
             : "Sign up and start playing today"}
         </CardDescription>
         <CardAction>
           <Button
             variant="link"
-            onClick={() => setTab(tab === "login" ? "register" : "login")}
+            onClick={() => {
+              setTab(isLogin ? "register" : "login");
+              setError(null);
+            }}
           >
-            {tab === "login" ? "Sign Up" : "Log In"}
+            {isLogin ? "Sign Up" : "Log In"}
           </Button>
         </CardAction>
       </CardHeader>
 
       <CardContent>
-        <Form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <FormField
             label="Email"
             id="email"
@@ -67,17 +76,18 @@ export function LoginForm() {
             type="password"
             required
             hint={
-              tab === "login" ? (
+              isLogin ? (
                 <a href="#" className="underline-offset-4 hover:underline">
                   Forgot your password?
                 </a>
               ) : undefined
             }
           />
-          <Button type="submit" className="w-full">
-            {tab === "login" ? "Login" : "Create account"}
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Button type="submit" className="w-full" disabled={pending}>
+            {pending ? "Please wait..." : isLogin ? "Login" : "Create account"}
           </Button>
-        </Form>
+        </form>
       </CardContent>
     </Card>
   );

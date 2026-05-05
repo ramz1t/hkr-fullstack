@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Inter, Figtree } from "next/font/google";
 import { cn } from "@repo/ui/utils";
+import { SessionExpiredModal } from "@/components/session-expired-modal";
 
 const figtreeHeading = Figtree({
   subsets: ["latin"],
@@ -31,7 +32,10 @@ export default function RootLayout({
         figtreeHeading.variable
       )}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <SessionExpiredModal />
+      </body>
     </html>
   );
 }
