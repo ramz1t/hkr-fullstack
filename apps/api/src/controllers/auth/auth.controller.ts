@@ -1,12 +1,13 @@
 import { Controller, Post, Body, Res, UseGuards, Req } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { Response, Request } from "express";
+import type { Response } from "express";
 import { AuthService } from "./auth.service";
 import type { LoginDto, RegisterDto, Tokens } from "@repo/types";
 import { loginSchema, registerSchema } from "@repo/types";
 import { JwtRefreshTokenGuard } from "../../common/guards";
 import { ZodValidationPipe } from "../../common/pipes";
-import type { RequestWithUser } from "../../common/types/request-with-user";
+import type { RequestWithUser } from "../../common/types";
+import { ApiBody } from "@nestjs/swagger";
 
 @Controller("auth")
 export class AuthController {
