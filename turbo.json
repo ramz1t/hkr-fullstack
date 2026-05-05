@@ -1,7 +1,7 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
-  "globalEnv": ["DATABASE_URL"],
+  "globalEnv": ["DATABASE_URL", "API_URL", "NODE_ENV"],
   "tasks": {
     "prisma:generate": {
       "cache": false
