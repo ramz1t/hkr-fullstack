@@ -2,10 +2,11 @@ import { Controller, Post, Body, Res, UseGuards, Req } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { Response, Request } from "express";
 import { AuthService } from "./auth.service";
-import type { LoginDto, RegisterDto, Tokens, JwtPayload } from "@repo/types";
+import type { LoginDto, RegisterDto, Tokens } from "@repo/types";
 import { loginSchema, registerSchema } from "@repo/types";
 import { JwtRefreshTokenGuard } from "../../common/guards";
 import { ZodValidationPipe } from "../../common/pipes";
+import type { RequestWithUser } from "../../common/types/request-with-user";
 
 @Controller("auth")
 export class AuthController {
@@ -41,10 +42,10 @@ export class AuthController {
   @Post("refresh")
   @UseGuards(JwtRefreshTokenGuard)
   async refresh(
-    @Req() req: Request,
+    @Req() req: RequestWithUser<"refreshToken">,
     @Res({ passthrough: true }) res: Response
   ) {
-    const payload = req.user as JwtPayload & Pick<Tokens, "refreshToken">;
+    const payload = req.user;
 
     const tokens = await this.authService.refresh(payload);
 
@@ -55,8 +56,11 @@ export class AuthController {
 
   @Post("logout")
   @UseGuards(JwtRefreshTokenGuard)
-  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const payload = req.user as JwtPayload & Pick<Tokens, "refreshToken">;
+  async logout(
+    @Req() req: RequestWithUser<"refreshToken">,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const payload = req.user;
 
     await this.authService.logout(payload.sessionId);
 

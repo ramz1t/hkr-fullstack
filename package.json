@@ -7,7 +7,8 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "prisma:generate": "bun --filter @repo/database prisma:generate"
+    "prisma:generate": "bun --filter @repo/database prisma:generate",
+    "clean": "rm -rf node_modules **/node_modules **/dist **/.next **/.turbo **/.cache **/build **/tsconfig.tsbuildinfo .eslintcache"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
