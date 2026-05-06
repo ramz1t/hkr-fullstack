@@ -8,7 +8,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
   constructor(private readonly configService: ConfigService) {
     const connectionString =
-      this.configService.get<string>("DATABASE_URL") ?? "";
+      this.configService.getOrThrow<string>("DATABASE_URL");
 
     this.client = createPrismaClient(connectionString);
   }

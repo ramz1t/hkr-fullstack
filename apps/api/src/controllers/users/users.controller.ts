@@ -4,7 +4,7 @@ import { JwtAccessTokenGuard } from "../../common/guards";
 import { CurrentUser } from "../../common/decorators";
 import type { JwtPayload } from "@repo/types";
 
-@Controller("auth")
+@Controller("users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

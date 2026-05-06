@@ -13,12 +13,12 @@ export class AccessTokenStrategy extends PassportStrategy(
   constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: (req: Request) => req.cookies?.access_token || null,
-      ignoreExpiration: false,
-      secretOrKey: configService.getOrThrow<string>("JWT_ACCESS_SECRET")
+      secretOrKey: configService.getOrThrow<string>("JWT_ACCESS_SECRET"),
+      passReqToCallback: true
     });
   }
 
-  validate(payload: JwtPayload) {
+  validate(req: Request, payload: JwtPayload) {
     return payload;
   }
 }
