@@ -71,9 +71,13 @@ export class AuthController {
 
   private setTokens(res: Response, tokens: Tokens) {
     const accessTtlMs =
-      (this.configService.get<number>("JWT_ACCESS_TTL") ?? 900) * 1000;
+      this.configService.getOrThrow<number>("JWT_ACCESS_TTL", {
+        infer: true
+      }) * 1000;
     const refreshTtlMs =
-      (this.configService.get<number>("JWT_REFRESH_TTL") ?? 604800) * 1000;
+      this.configService.getOrThrow<number>("JWT_REFRESH_TTL", {
+        infer: true
+      }) * 1000;
 
     res.cookie("access_token", tokens.accessToken, {
       httpOnly: true,

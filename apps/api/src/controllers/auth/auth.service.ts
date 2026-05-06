@@ -117,10 +117,13 @@ export class AuthService {
     role: UserRole,
     previousSessionId?: string
   ) {
-    const accessTtl = this.configService.get<number>("JWT_ACCESS_TTL") ?? 900;
-    const refreshTtl =
-      this.configService.get<number>("JWT_REFRESH_TTL") ?? 604800;
-
+    const accessTtl = +this.configService.getOrThrow<number>("JWT_ACCESS_TTL", {
+      infer: true
+    });
+    const refreshTtl = this.configService.getOrThrow<number>(
+      "JWT_REFRESH_TTL",
+      { infer: true }
+    );
     const newSessionId = crypto.randomUUID();
 
     const payload: JwtPayload = {
