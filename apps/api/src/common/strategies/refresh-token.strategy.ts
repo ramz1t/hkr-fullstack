@@ -3,7 +3,7 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-jwt";
 import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
-import type { JwtPayload, Tokens } from "@repo/types";
+import type { JwtPayload, JwtPayloadWithTokens, Tokens } from "@repo/types";
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
@@ -22,7 +22,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
   validate(
     req: Request,
     payload: JwtPayload
-  ): JwtPayload & Pick<Tokens, "refreshToken"> {
+  ): JwtPayloadWithTokens<"refreshToken"> {
     const refreshToken = req.cookies?.refresh_token;
 
     if (!refreshToken) {
