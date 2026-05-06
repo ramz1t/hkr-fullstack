@@ -1,13 +1,13 @@
 // @ts-check
-import eslint from '@eslint/js';
-import globals from 'globals';
-import tseslint, { plugin } from 'typescript-eslint';
+import eslint from "@eslint/js";
+import globals from "globals";
+import tseslint, { plugin } from "typescript-eslint";
 import { config as baseConfig } from "./base.js";
 
 export const nestJsConfig = tseslint.config(
   ...baseConfig,
   {
-    ignores: ['eslint.config.js'],
+    ignores: ["eslint.config.js"]
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -15,20 +15,19 @@ export const nestJsConfig = tseslint.config(
     languageOptions: {
       globals: {
         ...globals.node,
-        ...globals.jest,
+        ...globals.jest
       },
-      sourceType: 'commonjs',
+      sourceType: "commonjs",
       parserOptions: {
         projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
+        tsconfigRootDir: import.meta.dirname
+      }
+    }
   },
   {
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
-    },
-  },
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-floating-promises": "warn"
+    }
+  }
 );
