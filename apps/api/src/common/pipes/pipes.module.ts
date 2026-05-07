@@ -14,8 +14,7 @@ import { API_ERRORS } from "@repo/types";
           exceptionFactory: (validationErrors) => {
             const details = validationErrors.map((err) => ({
               field: err.property,
-              value: err.value,
-              constraints: err.constraints ? Object.values(err.constraints) : []
+              value: err.value
             }));
             const apiError = API_ERRORS.VALIDATION_FAILED;
             apiError.details = details;
