@@ -19,6 +19,7 @@ import { API_ERRORS } from "@repo/types";
             }));
             const apiError = API_ERRORS.VALIDATION_FAILED;
             apiError.details = details;
+            return apiError;
           }
         })
     }

@@ -112,10 +112,10 @@ export class AuthService {
     role: UserRole,
     previousSessionId?: string
   ) {
-    const accessTtl = this.configService.getOrThrow<number>("JWT_ACCESS_TTL", {
+    const accessTtl = +this.configService.getOrThrow<number>("JWT_ACCESS_TTL", {
       infer: true
     });
-    const refreshTtl = this.configService.getOrThrow<number>(
+    const refreshTtl = +this.configService.getOrThrow<number>(
       "JWT_REFRESH_TTL",
       { infer: true }
     );
@@ -129,7 +129,9 @@ export class AuthService {
     };
 
     const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: this.configService.get<string>("JWT_REFRESH_SECRET"),
+      secret: this.configService.get<string>("JWT_REFRESH_SECRET", {
+        infer: true
+      }),
       expiresIn: refreshTtl
     });
 
@@ -153,7 +155,9 @@ export class AuthService {
     });
 
     const accessToken = await this.jwtService.signAsync(payload, {
-      secret: this.configService.get<string>("JWT_ACCESS_SECRET"),
+      secret: this.configService.get<string>("JWT_ACCESS_SECRET", {
+        infer: true
+      }),
       expiresIn: accessTtl
     });
 
