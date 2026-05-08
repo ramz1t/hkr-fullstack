@@ -11,30 +11,34 @@ import {
 } from "@repo/ui/card";
 import { FormField } from "@repo/ui/form-field";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { loginAction, registerAction } from "@/lib/auth/actions";
+import { useServerAction } from "@/lib/hooks/use-server-action";
 
 export function LoginForm() {
+  const router = useRouter();
   const [tab, setTab] = useState<"login" | "register">("login");
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
 
   const isLogin = tab === "login";
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(null);
-    setPending(true);
-    const formData = new FormData(e.currentTarget);
-    const result = await (isLogin
-      ? loginAction(formData)
-      : registerAction(formData));
-    if (result) {
-      setError(result);
-      setPending(false);
-    } else {
-      const params = new URLSearchParams(window.location.search);
-      window.location.href = params.get("callbackUrl") ?? "/profile";
+  const { execute, error, isPending, clearError } = useServerAction(
+    async (formData: FormData) => {
+      const result = await (isLogin
+        ? loginAction(formData)
+        : registerAction(formData));
+      if (!result) {
+        const callbackUrl =
+          new URLSearchParams(window.location.search).get("callbackUrl") ??
+          "/profile";
+        router.push(callbackUrl);
+      }
+      return result;
     }
+  );
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    execute(new FormData(e.currentTarget));
   }
 
   return (
@@ -51,7 +55,7 @@ export function LoginForm() {
             variant="link"
             onClick={() => {
               setTab(isLogin ? "register" : "login");
-              setError(null);
+              clearError();
             }}
           >
             {isLogin ? "Sign Up" : "Log In"}
@@ -84,8 +88,12 @@ export function LoginForm() {
             }
           />
           {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" className="w-full" disabled={pending}>
-            {pending ? "Please wait..." : isLogin ? "Login" : "Create account"}
+          <Button type="submit" className="w-full" disabled={isPending}>
+            {isPending
+              ? "Please wait..."
+              : isLogin
+                ? "Login"
+                : "Create account"}
           </Button>
         </form>
       </CardContent>
