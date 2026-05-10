@@ -61,7 +61,7 @@ export class BetsService {
       throw new BadRequestException("Insufficient balance");
     }
 
-    const { id: betId } = await this.db.client.$transaction(async (tx) => {
+    const bet = await this.db.client.$transaction(async (tx) => {
       await tx.transaction.create({
         data: { userId, type: TransactionType.BET, amount: wager }
       });
@@ -89,28 +89,20 @@ export class BetsService {
       });
     });
 
-    const bet = (await this.db.client.bet.findUnique({
-      where: { id: betId },
-      include: { coinFlip: true }
-    }))!;
-
     return {
       id: bet.id,
-      userId: bet.userId,
+      gameId: game.id,
       wager: bet.wager,
       payout: bet.payout,
       nonce: bet.nonce,
-      coinflip: {
-        id: bet.coinFlip?.id ?? "",
-        chosenSide: side,
-        landedSide
-      },
-      createdAt: bet.createdAt,
-      updatedAt: bet.updatedAt
+      serverSeed: null,
+      serverSeedHash: provablyFair.serverSeedHash,
+      clientSeed: provablyFair.clientSeed,
+      coinFlip: { chosenSide: side, landedSide }
     };
   }
 
-  async verifyBet(userId: string, betId: string) {
+  async getBet(userId: string, betId: string): Promise<CoinflipBetDto> {
     const bet = await this.db.client.bet.findUnique({
       where: { id: betId },
       include: { coinFlip: true }
@@ -128,26 +120,26 @@ export class BetsService {
       throw new NotFoundException("Bet result data not found");
     }
 
-    const hash = crypto
-      .createHash("sha256")
-      .update(bet.serverSeedUsed + bet.clientSeedUsed + bet.nonce)
-      .digest("hex");
+    const provablyFair = await this.db.client.provablyFair.findUnique({
+      where: { userId }
+    });
 
-    const calculatedSide: CoinSide =
-      parseInt(hash.substring(0, 2), 16) % 2 === 0
-        ? CoinSide.HEADS
-        : CoinSide.TAILS;
-
-    const actualSide = bet.coinFlip.landedSide as CoinSide;
+    const seedRevealed =
+      provablyFair !== null && bet.serverSeedUsed !== provablyFair.serverSeed;
 
     return {
-      serverSeed: bet.serverSeedUsed,
-      clientSeed: bet.clientSeedUsed,
-      serverSeedHash: bet.serverSeedHashUsed,
+      id: bet.id,
+      gameId: bet.gameId,
+      wager: bet.wager,
+      payout: bet.payout,
       nonce: bet.nonce,
-      outcomeHash: hash,
-      result: { actualSide, calculatedSide },
-      match: calculatedSide === actualSide
+      serverSeed: seedRevealed ? bet.serverSeedUsed : null,
+      serverSeedHash: bet.serverSeedHashUsed,
+      clientSeed: bet.clientSeedUsed,
+      coinFlip: {
+        chosenSide: bet.coinFlip.chosenSide as CoinSide,
+        landedSide: bet.coinFlip.landedSide as CoinSide
+      }
     };
   }
 }

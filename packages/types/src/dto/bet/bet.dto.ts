@@ -1,10 +1,12 @@
+import type { CoinSide } from "./coin-side.enum";
+
 export type BetDto = {
   id: string;
-  gameSlug: string;
+  gameId: string;
   wager: number;
   payout: number;
   nonce: number;
-  won: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  serverSeed: string | null;
+  serverSeedHash: string;
+  clientSeed: string;
 };

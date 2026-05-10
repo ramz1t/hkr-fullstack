@@ -1,1 +1,1 @@
-export * from "./place-coinflip-bet-request.dto";
+export * from "./place-coinflip-bet.dto";

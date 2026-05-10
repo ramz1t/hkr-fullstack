@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsInt, Min, IsEnum } from "class-validator";
 import { CoinSide } from "@repo/types";
 
-export class PlaceCoinFlipBetRequestDto {
+export class PlaceCoinflipBetDto {
   @ApiProperty()
   @IsInt()
   @Min(1)

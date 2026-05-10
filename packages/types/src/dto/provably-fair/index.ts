@@ -1,2 +1,2 @@
 export * from "./seed-change.dto";
-export * from "./seed-reveal";
+export * from "./seed-reveal.dto";
