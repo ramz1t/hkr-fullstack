@@ -14,11 +14,11 @@ export class ProvablyFairController {
   @Post("seed")
   @ApiBody({ type: SeedRequestDto })
   async seed(@CurrentUser() user: JwtPayload, @Body() dto: SeedRequestDto) {
-    return this.provablyFairService.changeSeed(user.sub, dto.clientSeed);
+    return this.provablyFairService.seed(user.sub, dto.clientSeed);
   }
 
   @Post("reveal")
   async reveal(@CurrentUser() user: JwtPayload) {
-    return this.provablyFairService.revealSeed(user.sub);
+    return this.provablyFairService.reveal(user.sub);
   }
 }

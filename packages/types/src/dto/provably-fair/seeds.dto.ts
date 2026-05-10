@@ -1,4 +1,4 @@
-export type SeedChangeDto = {
+export type SeedsDto = {
   serverSeedHash: string;
   clientSeed: string;
 };

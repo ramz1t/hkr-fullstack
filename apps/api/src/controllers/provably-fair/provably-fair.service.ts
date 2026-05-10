@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { DatabaseService } from "../../common/database/database.service";
-import { SeedChangeDto, SeedRevealDto } from "@repo/types";
+import type { SeedsDto, RevealedSeedsDto } from "@repo/types";
 import crypto from "crypto";
 
 @Injectable()
 export class ProvablyFairService {
   constructor(private readonly db: DatabaseService) {}
 
-  async changeSeed(userId: string, clientSeed: string): Promise<SeedChangeDto> {
+  async seed(userId: string, clientSeed: string): Promise<SeedsDto> {
     const provablyFair = await this.db.client.provablyFair.findUnique({
       where: { userId }
     });
@@ -37,7 +37,7 @@ export class ProvablyFairService {
     };
   }
 
-  async revealSeed(userId: string): Promise<SeedRevealDto> {
+  async reveal(userId: string): Promise<RevealedSeedsDto> {
     const provablyFair = await this.db.client.provablyFair.findUnique({
       where: { userId }
     });
