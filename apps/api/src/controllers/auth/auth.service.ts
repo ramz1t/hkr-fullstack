@@ -51,11 +51,24 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(dto.password, this.SALT_ROUNDS);
+    const serverSeed = crypto.randomBytes(32).toString("hex");
+    const serverSeedHash = crypto
+      .createHash("sha256")
+      .update(serverSeed)
+      .digest("hex");
+    const clientSeed = crypto.randomBytes(16).toString("hex");
 
     const user = await this.db.client.user.create({
       data: {
         email: dto.email,
-        passwordHash
+        passwordHash,
+        provablyFair: {
+          create: {
+            clientSeed,
+            serverSeed,
+            serverSeedHash
+          }
+        }
       }
     });
 
@@ -120,7 +133,7 @@ export class AuthService {
     const accessTtl = +this.configService.getOrThrow<number>("JWT_ACCESS_TTL", {
       infer: true
     });
-    const refreshTtl = this.configService.getOrThrow<number>(
+    const refreshTtl = +this.configService.getOrThrow<number>(
       "JWT_REFRESH_TTL",
       { infer: true }
     );

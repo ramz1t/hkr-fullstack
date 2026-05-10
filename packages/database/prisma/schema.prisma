@@ -81,18 +81,19 @@ model Game {
 }
 
 model Bet {
-  id             String        @id @default(uuid())
-  userId         String
-  gameId         String
-  provablyFairId String
-  wager          Int
-  payout         Int
-  nonce          Int           @default(0)
-  user           User          @relation(fields: [userId], references: [id])
-  game           Game          @relation(fields: [gameId], references: [id])
-  provablyFair   ProvablyFair? @relation(fields: [provablyFairId], references: [id])
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id                 String        @id @default(uuid())
+  userId             String
+  gameId             String
+  wager              Int
+  payout             Int
+  nonce              Int           @default(0)
+  serverSeedUsed     String
+  serverSeedHashUsed String
+  clientSeedUsed     String
+  user               User          @relation(fields: [userId], references: [id])
+  game               Game          @relation(fields: [gameId], references: [id])
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
   coinFlip CoinFlip?
   diceRoll DiceRoll?
@@ -124,7 +125,6 @@ model ProvablyFair {
   serverSeed     String?
   clientSeed     String
   user           User     @relation(fields: [userId], references: [id])
-  bets           Bet[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }

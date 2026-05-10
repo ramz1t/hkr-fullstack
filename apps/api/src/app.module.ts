@@ -5,6 +5,8 @@ import { DatabaseModule } from "./common/database/database.module";
 import { AuthModule } from "./controllers/auth/auth.module";
 import { UsersModule } from "./controllers/users/users.module";
 import { WalletsModule } from "./controllers/wallets/wallets.module";
+import { ProvablyFairModule } from "./controllers/provably-fair/provably-fair.module";
+import { BetsModule } from "./controllers/bets/bets.module";
 
 @Module({
   imports: [
@@ -16,8 +18,10 @@ import { WalletsModule } from "./controllers/wallets/wallets.module";
     AuthModule,
     UsersModule,
     WalletsModule,
+    ProvablyFairModule,
+    BetsModule
   ],
   controllers: [AppController],
   providers: []
 })
-export class AppModule { }
+export class AppModule {}
