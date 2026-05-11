@@ -4,11 +4,13 @@ import { WalletDto, TransactionDto, TransactionType } from "@repo/types";
 
 @Injectable()
 export class WalletsService {
-  constructor(private readonly db: DatabaseService) { }
+  constructor(private readonly db: DatabaseService) {}
 
   async findByUserId(userId: string): Promise<WalletDto | null> {
     // Return null only if user doesn't exist
-    const user = await this.db.client.user.findUnique({ where: { id: userId } });
+    const user = await this.db.client.user.findUnique({
+      where: { id: userId }
+    });
     if (!user) {
       return null;
     }
@@ -21,7 +23,7 @@ export class WalletsService {
 
     const transactionsDb = await this.db.client.transaction.findMany({
       where: { userId },
-      orderBy: { createdAt: "desc" }  // latest first 
+      orderBy: { createdAt: "desc" } // latest first
     });
 
     for (const txDb of transactionsDb) {
@@ -30,16 +32,19 @@ export class WalletsService {
         type: txDb.type as TransactionType,
         amount: txDb.amount,
         createdAt: txDb.createdAt,
-        updatedAt: txDb.updatedAt,
+        updatedAt: txDb.updatedAt
       };
 
       this.updateWalletWithTransaction(wallet, tx);
     }
 
     return wallet;
-  };
+  }
 
-  private updateWalletWithTransaction(wallet: WalletDto, transaction: TransactionDto) {
+  private updateWalletWithTransaction(
+    wallet: WalletDto,
+    transaction: TransactionDto
+  ) {
     wallet.transactions.push(transaction);
 
     switch (transaction.type) {

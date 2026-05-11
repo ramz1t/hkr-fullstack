@@ -5,6 +5,9 @@ import { DatabaseModule } from "./common/database/database.module";
 import { AuthModule } from "./controllers/auth/auth.module";
 import { UsersModule } from "./controllers/users/users.module";
 import { WalletsModule } from "./controllers/wallets/wallets.module";
+import { InterceptorsModule } from "./common/interceptors";
+import { FiltersModule } from "./common/filters";
+import { PipesModule } from "./common/pipes/pipes.module";
 
 @Module({
   imports: [
@@ -13,11 +16,14 @@ import { WalletsModule } from "./controllers/wallets/wallets.module";
       isGlobal: true
     }),
     DatabaseModule,
+    InterceptorsModule,
+    FiltersModule,
+    PipesModule,
     AuthModule,
     UsersModule,
-    WalletsModule,
+    WalletsModule
   ],
   controllers: [AppController],
   providers: []
 })
-export class AppModule { }
+export class AppModule {}
