@@ -4,8 +4,12 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider               = "prisma-client"
+  output                 = "./generated"
+  engineType             = "client"
+  moduleFormat           = "cjs"
+  generatedFileExtension = "ts"
+  importFileExtension    = ""
 }
 
 datasource db {
@@ -23,6 +27,11 @@ enum TransactionType {
   BET
   WIN
   ADJUSTMENT
+}
+
+enum CoinSide {
+  HEADS
+  TAILS
 }
 
 model User {
@@ -76,19 +85,36 @@ model Bet {
   userId         String
   gameId         String
   provablyFairId String
-  amount         Int
+  wager          Int
   payout         Int
-  nonceUsed      Int
-  hash           String
-  result         Json
+  nonce          Int           @default(0)
   user           User          @relation(fields: [userId], references: [id])
   game           Game          @relation(fields: [gameId], references: [id])
   provablyFair   ProvablyFair? @relation(fields: [provablyFairId], references: [id])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
+  coinFlip CoinFlip?
+  diceRoll DiceRoll?
+
   @@index([userId, createdAt])
   @@index([gameId])
+}
+
+model CoinFlip {
+  id         String   @id @default(uuid())
+  betId      String   @unique
+  chosenSide CoinSide
+  landedSide CoinSide
+  bet        Bet      @relation(fields: [betId], references: [id], onDelete: Cascade)
+}
+
+model DiceRoll {
+  id     String @id @default(uuid())
+  betId  String @unique
+  target Int
+  rolled Int
+  bet    Bet    @relation(fields: [betId], references: [id], onDelete: Cascade)
 }
 
 model ProvablyFair {
@@ -97,7 +123,6 @@ model ProvablyFair {
   serverSeedHash String
   serverSeed     String?
   clientSeed     String
-  nonce          Int      @default(0)
   user           User     @relation(fields: [userId], references: [id])
   bets           Bet[]
   createdAt      DateTime @default(now())
