@@ -8,7 +8,8 @@
     "./next-js": "./next.js",
     "./nest-js": "./nest.js",
     "./prettier": "./prettier.js",
-    "./react-internal": "./react-internal.js"
+    "./react-internal": "./react-internal.js",
+    "./react": "./react.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -19,6 +20,7 @@
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
     "eslint-plugin-turbo": "^2.7.1",
     "globals": "^16.5.0",
     "typescript": "^5.9.2",
