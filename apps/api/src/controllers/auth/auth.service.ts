@@ -4,7 +4,12 @@ import { ConfigService } from "@nestjs/config";
 import * as bcrypt from "bcryptjs";
 import { DatabaseService } from "../../common/database/database.service";
 import { UsersService } from "../users/users.service";
-import type { LoginDto, RegisterDto, JwtPayload, Tokens } from "@repo/types";
+import type {
+  LoginDto,
+  RegisterDto,
+  JwtPayload,
+  JwtPayloadWithTokens
+} from "@repo/types";
 import { API_ERRORS, UserRole } from "@repo/types";
 import crypto from "crypto";
 
@@ -74,7 +79,7 @@ export class AuthService {
     );
   }
 
-  async refresh(payload: JwtPayload & Pick<Tokens, "refreshToken">) {
+  async refresh(payload: JwtPayloadWithTokens<"refreshToken">) {
     const session = await this.db.client.session.findUnique({
       where: { id: payload.sessionId }
     });
