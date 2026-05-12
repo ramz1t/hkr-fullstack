@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-import * as bcrypt from "bcrypt";
+import * as bcrypt from "bcryptjs";
 import { DatabaseService } from "../../common/database/database.service";
 import { UsersService } from "../users/users.service";
 import type {
@@ -51,11 +51,24 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(dto.password, this.SALT_ROUNDS);
+    const serverSeed = crypto.randomBytes(32).toString("hex");
+    const serverSeedHash = crypto
+      .createHash("sha256")
+      .update(serverSeed)
+      .digest("hex");
+    const clientSeed = crypto.randomBytes(16).toString("hex");
 
     const user = await this.db.client.user.create({
       data: {
         email: dto.email,
-        passwordHash
+        passwordHash,
+        provablyFair: {
+          create: {
+            clientSeed,
+            serverSeed,
+            serverSeedHash
+          }
+        }
       }
     });
 

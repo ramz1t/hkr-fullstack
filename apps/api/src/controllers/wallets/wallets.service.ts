@@ -1,68 +1,59 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "../../common/database/database.service";
 import { WalletDto, TransactionDto, TransactionType } from "@repo/types";
+import type { User } from "@repo/database";
 
 @Injectable()
 export class WalletsService {
   constructor(private readonly db: DatabaseService) {}
 
+  async getBalance(userId: User["id"]): Promise<number> {
+    const transactions = await this.db.client.transaction.findMany({
+      where: { userId }
+    });
+
+    let balance = 0;
+    for (const transaction of transactions) {
+      switch (transaction.type as TransactionType) {
+        case TransactionType.DEPOSIT:
+        case TransactionType.WIN:
+        case TransactionType.ADJUSTMENT:
+          balance += transaction.amount;
+          break;
+        case TransactionType.WITHDRAWAL:
+        case TransactionType.BET:
+          balance -= transaction.amount;
+          break;
+      }
+    }
+
+    return balance;
+  }
+
   async findByUserId(userId: string): Promise<WalletDto | null> {
-    // Return null only if user doesn't exist
     const user = await this.db.client.user.findUnique({
       where: { id: userId }
     });
+
     if (!user) {
       return null;
     }
 
-    // Construct wallet data
-    const wallet: WalletDto = {
-      balance: 0,
-      transactions: []
-    };
+    const balance = await this.getBalance(userId);
 
     const transactionsDb = await this.db.client.transaction.findMany({
       where: { userId },
-      orderBy: { createdAt: "desc" } // latest first
+      orderBy: { createdAt: "desc" }
     });
 
-    for (const txDb of transactionsDb) {
-      const tx: TransactionDto = {
-        id: txDb.id,
-        type: txDb.type as TransactionType,
-        amount: txDb.amount,
-        createdAt: txDb.createdAt,
-        updatedAt: txDb.updatedAt
-      };
+    const transactions: TransactionDto[] = transactionsDb.map((t) => ({
+      id: t.id,
+      type: t.type as TransactionType,
+      amount: t.amount,
+      createdAt: t.createdAt,
+      updatedAt: t.updatedAt
+    }));
 
-      this.updateWalletWithTransaction(wallet, tx);
-    }
-
-    return wallet;
-  }
-
-  private updateWalletWithTransaction(
-    wallet: WalletDto,
-    transaction: TransactionDto
-  ) {
-    wallet.transactions.push(transaction);
-
-    switch (transaction.type) {
-      case TransactionType.DEPOSIT:
-        wallet.balance += transaction.amount;
-        break;
-      case TransactionType.WITHDRAWAL:
-        wallet.balance -= transaction.amount;
-        break;
-      case TransactionType.BET:
-        wallet.balance -= transaction.amount;
-        break;
-      case TransactionType.WIN:
-        wallet.balance += transaction.amount;
-        break;
-      case TransactionType.ADJUSTMENT:
-        wallet.balance += transaction.amount;
-        break;
-    }
+    return { balance, transactions };
   }
 }
