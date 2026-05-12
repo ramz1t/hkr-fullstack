@@ -1,6 +1,9 @@
 @import "shadcn/tailwind.css";
+@import url("https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
 :root {
+  --font-sans: "Inter", sans-serif;
+  --font-heading: "Figtree", sans-serif;
   --background: oklch(1 0 0);
   --foreground: oklch(0.148 0.004 228.8);
   --card: oklch(1 0 0);

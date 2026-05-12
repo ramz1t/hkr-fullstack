@@ -1,16 +1,11 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  ConflictException,
-  ForbiddenException
-} from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import * as bcrypt from "bcryptjs";
 import { DatabaseService } from "../../common/database/database.service";
 import { UsersService } from "../users/users.service";
 import type { LoginDto, RegisterDto, JwtPayload, Tokens } from "@repo/types";
-import { UserRole } from "@repo/types";
+import { API_ERRORS, UserRole } from "@repo/types";
 import crypto from "crypto";
 
 @Injectable()
@@ -27,17 +22,17 @@ export class AuthService {
     const user = await this.usersService.findByEmail(dto.email);
 
     if (!user) {
-      throw new UnauthorizedException("Invalid credentials");
+      throw API_ERRORS.AUTH_INVALID_CREDENTIALS;
     }
 
     if (user?.isBanned) {
-      throw new ForbiddenException("Account is banned");
+      throw API_ERRORS.AUTH_ACCOUNT_BANNED;
     }
 
     const passwordHash = await this.usersService.getPasswordHash(user.id);
 
     if (!passwordHash || !(await bcrypt.compare(dto.password, passwordHash))) {
-      throw new UnauthorizedException("Invalid credentials");
+      throw API_ERRORS.AUTH_INVALID_CREDENTIALS;
     }
 
     return this.generateTokens(user.id, user.email, user.role);
@@ -47,7 +42,7 @@ export class AuthService {
     const existingUser = await this.usersService.findByEmail(dto.email);
 
     if (existingUser) {
-      throw new ConflictException("Email already registered");
+      throw API_ERRORS.AUTH_EMAIL_ALREADY_REGISTERED;
     }
 
     const passwordHash = await bcrypt.hash(dto.password, this.SALT_ROUNDS);
@@ -85,7 +80,7 @@ export class AuthService {
     });
 
     if (!session || session.userId !== payload.sub) {
-      throw new UnauthorizedException("Invalid session");
+      throw API_ERRORS.AUTH_INVALID_SESSION;
     }
 
     const incomingHash = crypto
@@ -98,7 +93,7 @@ export class AuthService {
         where: { userId: session.userId }
       });
 
-      throw new UnauthorizedException("Invalid session");
+      throw API_ERRORS.AUTH_INVALID_SESSION;
     }
 
     const user = await this.db.client.user.findUnique({
@@ -107,7 +102,7 @@ export class AuthService {
     });
 
     if (!user || user.isBanned) {
-      throw new ForbiddenException("Account is banned");
+      throw API_ERRORS.AUTH_ACCOUNT_BANNED;
     }
 
     return this.generateTokens(
@@ -147,7 +142,9 @@ export class AuthService {
     };
 
     const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: this.configService.get<string>("JWT_REFRESH_SECRET"),
+      secret: this.configService.get<string>("JWT_REFRESH_SECRET", {
+        infer: true
+      }),
       expiresIn: refreshTtl
     });
 
@@ -171,7 +168,9 @@ export class AuthService {
     });
 
     const accessToken = await this.jwtService.signAsync(payload, {
-      secret: this.configService.get<string>("JWT_ACCESS_SECRET"),
+      secret: this.configService.get<string>("JWT_ACCESS_SECRET", {
+        infer: true
+      }),
       expiresIn: accessTtl
     });
 
