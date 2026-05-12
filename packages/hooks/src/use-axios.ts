@@ -3,6 +3,8 @@ import { useMemo, useRef } from "react";
 import { useAuth } from "./use-auth.js";
 import type { ApiResponse, Tokens } from "@repo/types";
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
 const TOKEN_EXPIRY_BUFFER_SECONDS = Math.floor(
   Number(import.meta.env.VITE_JWT_ACCESS_TTL ?? 900) / 10
 );
@@ -28,6 +30,7 @@ export const useAxios = (): AxiosInstance => {
 
   const instance = useMemo(() => {
     const inst = axios.create({
+      baseURL: BASE_URL,
       headers: { "Content-Type": "application/json" }
     });
 
@@ -45,7 +48,7 @@ export const useAxios = (): AxiosInstance => {
 
         try {
           const res = await axios.post<ApiResponse<Tokens>>(
-            "/api/auth/refresh",
+            `${BASE_URL}/api/auth/refresh`,
             { refreshToken },
             { headers: { "Content-Type": "application/json" } }
           );
