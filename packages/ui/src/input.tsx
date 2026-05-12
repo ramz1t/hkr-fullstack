@@ -2,9 +2,23 @@ import * as React from "react";
 
 import { cn } from "./utils";
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+function Input({
+  className,
+  type,
+  autoFocus,
+  ...props
+}: React.ComponentProps<"input">) {
+  const ref = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (autoFocus) {
+      ref.current?.focus();
+    }
+  }, [autoFocus]);
+
   return (
     <input
+      ref={ref}
       type={type}
       data-slot="input"
       className={cn(

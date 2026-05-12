@@ -115,6 +115,7 @@ const Login = () => {
                 type="email"
                 placeholder="me@example.com"
                 required
+                autoFocus
               />
               <FormField
                 label="Password"
