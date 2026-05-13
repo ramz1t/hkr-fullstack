@@ -1,10 +1,10 @@
-import { Controller, Get, Query, UseGuards } from "@nestjs/common";
+import { Controller, Get, Post, Query, Body, UseGuards } from "@nestjs/common";
 import { WalletsService } from "./wallets.service";
 import { JwtAccessTokenGuard } from "../../common/guards";
 import { CurrentUser } from "../../common/decorators";
 import type { JwtPayload } from "@repo/types";
-import { ApiQuery } from "@nestjs/swagger";
-import { GetPaginatedTransactionsDto } from "./dto";
+import { GetPaginatedTransactionsDto, MakePaymentDto, PaymentAction } from "./dto";
+import { ApiBody } from "@nestjs/swagger";
 
 @Controller("wallet")
 export class WalletsController {
@@ -23,5 +23,20 @@ export class WalletsController {
     @Query() query: GetPaginatedTransactionsDto
   ) {
     return this.walletsService.findTransactionsByUserId(user.sub, query.page, query.pageSize);
+  }
+
+  @Post("me/payment")
+  @ApiBody({ type: MakePaymentDto })
+  @UseGuards(JwtAccessTokenGuard)
+  async makePayment(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: MakePaymentDto
+  ) {
+    switch (body.action) {
+      case PaymentAction.DEPOSIT:
+        return await this.walletsService.makeDeposit(user.sub, body.amount);
+      case PaymentAction.WITHDRAWAL:
+        return await this.walletsService.makeWithdrawal(user.sub, body.amount);
+    }
   }
 }

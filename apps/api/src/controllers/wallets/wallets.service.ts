@@ -1,11 +1,15 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { DatabaseService } from "../../common/database/database.service";
+import { PaymentProviderService } from "../../common/payment/payment-provider.service";
 import { WalletDto, TransactionDto, TransactionType, PaginatedTransactionsDto } from "@repo/types";
 import type { Transaction } from "@repo/database";
 
 @Injectable()
 export class WalletsService {
-  constructor(private readonly db: DatabaseService) { }
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly paymentProvider: PaymentProviderService
+  ) { }
 
   buildBalance(transactions: TransactionDto[]): number {
     let balance = 0;
@@ -77,5 +81,33 @@ export class WalletsService {
     const total = await this.db.client.transaction.count({ where: { userId } });
 
     return { transactions, total, page, pageSize };
+  }
+
+  async makeDeposit(userId: string, amount: number): Promise<TransactionDto> {
+    await this.paymentProvider.deposit(userId, amount);
+    return await this.createTransaction(userId, TransactionType.DEPOSIT, amount);
+  }
+
+  async makeWithdrawal(userId: string, amount: number): Promise<TransactionDto> {
+    const balance = await this.getBalance(userId);
+
+    if (balance < amount) {
+      throw new BadRequestException("Insufficient balance");
+    }
+
+    await this.paymentProvider.withdraw(userId, amount);
+    return await this.createTransaction(userId, TransactionType.WITHDRAWAL, amount);
+  }
+
+  async createTransaction(userId: string, type: TransactionType, amount: number): Promise<TransactionDto> {
+    const transaction = await this.db.client.transaction.create({
+      data: {
+        userId,
+        type,
+        amount
+      }
+    });
+
+    return this.mapTransaction(transaction);
   }
 }
