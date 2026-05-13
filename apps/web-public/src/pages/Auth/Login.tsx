@@ -10,8 +10,9 @@ import {
 import { FormField } from "@repo/ui/form-field";
 import { useAuth } from "@repo/hooks/use-auth";
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import type { LoginDto } from "@repo/types";
+import { Helmet } from "react-helmet-async";
 
 const HEADERS = [
   "It's your time to win.",
@@ -25,6 +26,8 @@ const HEADERS = [
 const Login = () => {
   const { login, register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("from") ?? "/";
   const [tab, setTab] = useState<"login" | "register">("login");
   const isLogin = tab === "login";
   const [error, setError] = useState<string | null>(null);
@@ -47,14 +50,14 @@ const Login = () => {
         } else {
           await register(dto.email, dto.password);
         }
-        navigate("/");
+        navigate(redirectTo);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
         setIsPending(false);
       }
     },
-    [isLogin, login, register, navigate]
+    [isLogin, login, register, navigate, redirectTo]
   );
 
   useEffect(() => {
@@ -62,7 +65,10 @@ const Login = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex-col-reverse md:flex-row flex">
+    <section className="min-h-screen flex-col-reverse md:flex-row flex">
+      <Helmet>
+        <title>Auth | CasinoApp</title>
+      </Helmet>
       <div className="flex flex-col justify-between md:w-1/2 bg-primary/10 border-r border-border p-12">
         <Link
           to="/"
@@ -143,7 +149,7 @@ const Login = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </section>
   );
 };
 
