@@ -1,17 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseService } from "../../common/database/database.service";
-import { WalletDto, TransactionDto, TransactionType } from "@repo/types";
-import type { User } from "@repo/database";
+import { WalletDto, TransactionDto, TransactionType, PaginatedTransactionsDto } from "@repo/types";
+import type { Transaction } from "@repo/database";
 
 @Injectable()
 export class WalletsService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(private readonly db: DatabaseService) { }
 
-  async getBalance(userId: User["id"]): Promise<number> {
-    const transactions = await this.db.client.transaction.findMany({
-      where: { userId }
-    });
-
+  buildBalance(transactions: TransactionDto[]): number {
     let balance = 0;
     for (const transaction of transactions) {
       switch (transaction.type as TransactionType) {
@@ -30,6 +26,25 @@ export class WalletsService {
     return balance;
   }
 
+  private mapTransaction(transaction: Transaction): TransactionDto {
+    return {
+      id: transaction.id,
+      type: transaction.type as TransactionType,
+      amount: transaction.amount,
+      createdAt: transaction.createdAt,
+      updatedAt: transaction.updatedAt
+    };
+  }
+
+  async getBalance(userId: string): Promise<number> {
+    const transactions = await this.db.client.transaction.findMany({
+      where: { userId }
+    });
+    const transactionsDto = transactions.map(this.mapTransaction);
+
+    return this.buildBalance(transactionsDto);
+  }
+
   async findByUserId(userId: string): Promise<WalletDto | null> {
     const user = await this.db.client.user.findUnique({
       where: { id: userId }
@@ -39,21 +54,28 @@ export class WalletsService {
       return null;
     }
 
-    const balance = await this.getBalance(userId);
-
     const transactionsDb = await this.db.client.transaction.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" }
     });
+    const transactions: TransactionDto[] = transactionsDb.map(this.mapTransaction);
 
-    const transactions: TransactionDto[] = transactionsDb.map((t) => ({
-      id: t.id,
-      type: t.type as TransactionType,
-      amount: t.amount,
-      createdAt: t.createdAt,
-      updatedAt: t.updatedAt
-    }));
+    const balance = this.buildBalance(transactions);
 
     return { balance, transactions };
+  }
+
+  async findTransactionsByUserId(userId: string, page: number, pageSize: number): Promise<PaginatedTransactionsDto> {
+    const transactionsDb = await this.db.client.transaction.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize
+    });
+
+    const transactions: TransactionDto[] = transactionsDb.map(this.mapTransaction);
+    const total = await this.db.client.transaction.count({ where: { userId } });
+
+    return { transactions, total, page, pageSize };
   }
 }

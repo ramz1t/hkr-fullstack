@@ -7,3 +7,10 @@ export type TransactionDto = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type PaginatedTransactionsDto = {
+  transactions: TransactionDto[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
