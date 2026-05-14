@@ -5,7 +5,7 @@ import {
   WalletDto,
   TransactionDto,
   TransactionType,
-  PaginatedTransactionsDto
+  PaginatedResult
 } from "@repo/types";
 import type { Transaction } from "@repo/database";
 
@@ -70,20 +70,30 @@ export class WalletsService {
     userId: string,
     page: number,
     pageSize: number
-  ): Promise<PaginatedTransactionsDto> {
-    const transactionsDb = await this.db.client.transaction.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize
-    });
+  ): Promise<PaginatedResult<TransactionDto>> {
+    const [transactionDbEntries, total] = await Promise.all([
+      this.db.client.transaction.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize
+      }),
+      this.db.client.transaction.count({ where: { userId } })
+    ]);
 
-    const transactions: TransactionDto[] = transactionsDb.map(
-      this.toTransactionDto
-    );
-    const total = await this.db.client.transaction.count({ where: { userId } });
+    const data = transactionDbEntries.map(this.toTransactionDto);
+    const totalPages = Math.ceil(total / pageSize);
 
-    return { transactions, total, page, pageSize };
+    return {
+      data,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages,
+        hasMore: page < totalPages
+      }
+    };
   }
 
   async makeDeposit(userId: string, amount: number): Promise<TransactionDto> {
