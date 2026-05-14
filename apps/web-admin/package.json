@@ -10,7 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@repo/hooks": "workspace:*",
+    "@repo/types": "workspace:*",
     "@repo/ui": "workspace:*",
+    "react-lazily": "^0.9.2",
     "@tanstack/react-query": "^5.100.9",
     "@tanstack/react-query-devtools": "^5.100.9",
     "axios": "^1.16.0",
