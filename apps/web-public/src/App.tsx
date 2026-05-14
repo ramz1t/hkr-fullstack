@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { lazily } from "react-lazily";
 import { Route, Routes } from "react-router-dom";
-import { Navbar, ProtectedRoute } from "@/components";
+import { Navbar, ProtectedRoute } from "./components";
 const { Login, Wallet } = lazily(() => import("./pages"));
 
 const App = () => {

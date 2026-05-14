@@ -1,6 +1,6 @@
 import { Coins } from "lucide-react";
 import { fmt } from "./utils";
-import { useWalletBalance } from "@/api";
+import { useWalletBalance } from "../../api";
 
 const BalanceCard = () => {
   const { data, isLoading, isError } = useWalletBalance();

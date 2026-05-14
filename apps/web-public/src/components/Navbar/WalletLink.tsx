@@ -1,5 +1,5 @@
 import { WalletIcon } from "lucide-react";
-import { useWalletBalance } from "@/api";
+import { useWalletBalance } from "../../api";
 
 const WalletLink = () => {
   const { data, isLoading, isError } = useWalletBalance();

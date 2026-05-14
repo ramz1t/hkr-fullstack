@@ -1,7 +1,7 @@
 import type { TransactionDto } from "@repo/types";
 import { TYPE_COLOR, TYPE_LABEL, fmt, isDebit } from "./utils";
 import { useCallback, useState } from "react";
-import { useWalletTransactions } from "@/api";
+import { useWalletTransactions } from "../../api";
 import { LoadMoreTrigger } from "@repo/ui/load-more-trigger";
 
 const TransactionsTable = () => {
