@@ -14,7 +14,7 @@ import { PipesModule } from "./common/pipes/pipes.module";
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: "../../.env",
+      envFilePath: "../.env",
       isGlobal: true
     }),
     DatabaseModule,
