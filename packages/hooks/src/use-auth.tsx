@@ -67,7 +67,7 @@ export function AuthProvider({ children, apiBaseUrl }: AuthProviderProps) {
   const login = useCallback(
     async (email: string, password: string) => {
       const dto: LoginDto = { email, password };
-      const res = await fetch(`${apiBaseUrl}/api/auth/login`, {
+      const res = await fetch(`${apiBaseUrl}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dto)
@@ -82,7 +82,7 @@ export function AuthProvider({ children, apiBaseUrl }: AuthProviderProps) {
   const register = useCallback(
     async (email: string, password: string) => {
       const dto: RegisterDto = { email, password };
-      const res = await fetch(`${apiBaseUrl}/api/auth/register`, {
+      const res = await fetch(`${apiBaseUrl}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dto)
@@ -97,7 +97,7 @@ export function AuthProvider({ children, apiBaseUrl }: AuthProviderProps) {
   const logout = useCallback(async () => {
     try {
       if (tokens?.refreshToken) {
-        await fetch(`${apiBaseUrl}/api/auth/logout`, {
+        await fetch(`${apiBaseUrl}/auth/logout`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ refreshToken: tokens.refreshToken })

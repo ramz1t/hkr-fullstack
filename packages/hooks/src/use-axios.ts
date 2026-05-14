@@ -44,8 +44,9 @@ export const useAxios = (): AxiosInstance => {
         }
 
         try {
+          const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
           const res = await axios.post<ApiResponse<Tokens>>(
-            "/api/auth/refresh",
+            `${baseUrl}/auth/refresh`,
             { refreshToken },
             { headers: { "Content-Type": "application/json" } }
           );

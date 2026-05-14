@@ -48,7 +48,7 @@ const Dashboard = () => {
   } = useQuery<AdminUserView[]>({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const res = await axios.get(`${baseUrl}/api/users`);
+      const res = await axios.get(`${baseUrl}/users`);
       return res.data?.data || [];
     },
   });
@@ -56,7 +56,7 @@ const Dashboard = () => {
   // Ban user mutation
   const banMutation = useMutation({
     mutationFn: async (userId: string) => {
-      await axios.patch(`${baseUrl}/api/users/${userId}/ban`);
+      await axios.patch(`${baseUrl}/users/${userId}/ban`);
     },
     onSuccess: () => {
       toast.success("User access revoked successfully");
@@ -70,7 +70,7 @@ const Dashboard = () => {
   // Unban user mutation
   const unbanMutation = useMutation({
     mutationFn: async (userId: string) => {
-      await axios.patch(`${baseUrl}/api/users/${userId}/unban`);
+      await axios.patch(`${baseUrl}/users/${userId}/unban`);
     },
     onSuccess: () => {
       toast.success("User access restored successfully");
