@@ -11,7 +11,12 @@
     "lint": "eslint --fix",
     "prisma:generate": "prisma generate",
     "prisma:format": "prisma format",
-    "prisma:seed": "prisma db seed"
+    "prisma:seed": "bun --env-file=../../.env run prisma/seed.ts",
+    "prisma:migrate": "prisma migrate deploy",
+    "prisma:reset": "prisma migrate reset --force"
+  },
+  "prisma": {
+    "seed": "bun --env-file=../../.env run prisma/seed.ts"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
@@ -23,6 +28,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "pg": "^8.20.0"
   }

@@ -9,3 +9,5 @@ export function createPrismaClient(connectionString: string) {
   const adapter = new PrismaPg({ connectionString });
   return new PrismaClient({ adapter });
 }
+
+export * from "../prisma/generated/client";
