@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import { lazily } from "react-lazily";
 import { Route, Routes } from "react-router-dom";
-import { Navbar } from "./components";
-const { Login } = lazily(() => import("./pages"));
+import { Navbar, ProtectedRoute } from "./components";
+const { Login, Wallet } = lazily(() => import("./pages"));
 
 const App = () => {
   return (
@@ -12,8 +12,11 @@ const App = () => {
         <div className="grow flex flex-col">
           <Suspense>
             <Routes>
-              <Route path="/" element={"go to /login to auth"} />
+              <Route path="/" element={"homepage"} />
               <Route path="/login" element={<Login />} />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/wallet" element={<Wallet />} />
+              </Route>
               <Route path="*" element={"change to NotFound"} />
             </Routes>
           </Suspense>
