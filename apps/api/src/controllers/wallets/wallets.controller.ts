@@ -3,12 +3,16 @@ import { WalletsService } from "./wallets.service";
 import { JwtAccessTokenGuard } from "../../common/guards";
 import { CurrentUser } from "../../common/decorators";
 import type { JwtPayload } from "@repo/types";
-import { GetPaginatedTransactionsDto, MakePaymentDto, PaymentAction } from "./dto";
+import {
+  GetPaginatedTransactionsDto,
+  MakePaymentDto,
+  PaymentAction
+} from "./dto";
 import { ApiBody } from "@nestjs/swagger";
 
 @Controller("wallet")
 export class WalletsController {
-  constructor(private readonly walletsService: WalletsService) { }
+  constructor(private readonly walletsService: WalletsService) {}
 
   @Get("me")
   @UseGuards(JwtAccessTokenGuard)
@@ -22,7 +26,17 @@ export class WalletsController {
     @CurrentUser() user: JwtPayload,
     @Query() query: GetPaginatedTransactionsDto
   ) {
-    return this.walletsService.findTransactionsByUserId(user.sub, query.page, query.pageSize);
+    return this.walletsService.findTransactionsByUserId(
+      user.sub,
+      query.page,
+      query.pageSize
+    );
+  }
+
+  @Get("me/balance")
+  @UseGuards(JwtAccessTokenGuard)
+  async meBalance(@CurrentUser() user: JwtPayload) {
+    return this.walletsService.getBalance(user.sub);
   }
 
   @Post("me/payment")
