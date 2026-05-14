@@ -3,6 +3,13 @@ import { PrismaClient } from "./generated/client";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
+import dotenv from "dotenv";
+import path from "path";
+
+dotenv.config({
+  path: path.resolve(process.cwd(), "../../.env")
+});
+
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 

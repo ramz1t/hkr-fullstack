@@ -10,17 +10,19 @@ import { BetsModule } from "./controllers/bets/bets.module";
 import { InterceptorsModule } from "./common/interceptors";
 import { FiltersModule } from "./common/filters";
 import { PipesModule } from "./common/pipes/pipes.module";
+import { PaymentProviderModule } from "./common/payment/payment-provider.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: "../../.env",
+      envFilePath: "../.env",
       isGlobal: true
     }),
     DatabaseModule,
     InterceptorsModule,
     FiltersModule,
     PipesModule,
+    PaymentProviderModule,
     AuthModule,
     UsersModule,
     WalletsModule,
@@ -30,4 +32,4 @@ import { PipesModule } from "./common/pipes/pipes.module";
   controllers: [AppController],
   providers: []
 })
-export class AppModule {}
+export class AppModule { }

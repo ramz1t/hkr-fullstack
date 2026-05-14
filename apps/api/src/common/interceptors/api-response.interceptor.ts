@@ -5,6 +5,7 @@ import {
   NestInterceptor
 } from "@nestjs/common";
 import type { ApiResponse } from "@repo/types";
+import { isPaginatedResult } from "@repo/types";
 import type { Request, Response } from "express";
 import { map, Observable } from "rxjs";
 
@@ -21,9 +22,9 @@ export class ApiResponseInterceptor<T>
     const response = http.getResponse<Response>();
 
     return next.handle().pipe(
-      map(
-        (data): ApiResponse<T> => ({
-          data: data ?? null,
+      map((data): ApiResponse<T> => {
+        const apiResponse: ApiResponse<T> = {
+          data: data as T,
           meta: {
             requestId: request.headers["x-request-id"]?.toString(),
             timestamp: new Date().toISOString(),
@@ -32,8 +33,15 @@ export class ApiResponseInterceptor<T>
             statusCode: response.statusCode
           },
           error: null
-        })
-      )
+        };
+
+        if (isPaginatedResult(data)) {
+          apiResponse.data = data.data as T;
+          apiResponse.meta.pagination = data.pagination;
+        }
+
+        return apiResponse;
+      })
     );
   }
 }

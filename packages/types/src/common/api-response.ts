@@ -1,3 +1,5 @@
+import type { PaginationMeta } from "./pagination";
+
 export type ApiResponse<T> = {
   data: T | null;
   meta: ApiResponseMeta;
@@ -10,6 +12,7 @@ export type ApiResponseMeta = {
   path?: string;
   method: string;
   statusCode: number;
+  pagination?: PaginationMeta;
 };
 
 export type ApiResponseError = {

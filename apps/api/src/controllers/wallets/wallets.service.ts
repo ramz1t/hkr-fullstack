@@ -1,20 +1,25 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { DatabaseService } from "../../common/database/database.service";
-import { WalletDto, TransactionDto, TransactionType } from "@repo/types";
-import type { User } from "@repo/database";
+import { PaymentProviderService } from "../../common/payment/payment-provider.service";
+import {
+  WalletDto,
+  TransactionDto,
+  TransactionType,
+  PaginatedResult
+} from "@repo/types";
+import type { Transaction } from "@repo/database";
 
 @Injectable()
 export class WalletsService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly paymentProvider: PaymentProviderService
+  ) { }
 
-  async getBalance(userId: User["id"]): Promise<number> {
-    const transactions = await this.db.client.transaction.findMany({
-      where: { userId }
-    });
-
+  private buildBalance(transactions: TransactionDto[]): number {
     let balance = 0;
     for (const transaction of transactions) {
-      switch (transaction.type as TransactionType) {
+      switch (transaction.type) {
         case TransactionType.DEPOSIT:
         case TransactionType.WIN:
         case TransactionType.ADJUSTMENT:
@@ -30,6 +35,15 @@ export class WalletsService {
     return balance;
   }
 
+  async getBalance(userId: string): Promise<{ balance: number; }> {
+    const transactions = await this.db.client.transaction.findMany({
+      where: { userId }
+    });
+    const transactionsDto = transactions.map(this.toTransactionDto);
+
+    return { balance: this.buildBalance(transactionsDto) };
+  }
+
   async findByUserId(userId: string): Promise<WalletDto | null> {
     const user = await this.db.client.user.findUnique({
       where: { id: userId }
@@ -39,21 +53,99 @@ export class WalletsService {
       return null;
     }
 
-    const balance = await this.getBalance(userId);
-
     const transactionsDb = await this.db.client.transaction.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" }
     });
+    const transactions: TransactionDto[] = transactionsDb.map(
+      this.toTransactionDto
+    );
 
-    const transactions: TransactionDto[] = transactionsDb.map((t) => ({
-      id: t.id,
-      type: t.type as TransactionType,
-      amount: t.amount,
-      createdAt: t.createdAt,
-      updatedAt: t.updatedAt
-    }));
+    const balance = this.buildBalance(transactions);
 
     return { balance, transactions };
+  }
+
+  async findTransactionsByUserId(
+    userId: string,
+    page: number,
+    pageSize: number
+  ): Promise<PaginatedResult<TransactionDto>> {
+    const [transactionDbEntries, total] = await Promise.all([
+      this.db.client.transaction.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize
+      }),
+      this.db.client.transaction.count({ where: { userId } })
+    ]);
+
+    const data = transactionDbEntries.map(this.toTransactionDto);
+    const totalPages = Math.ceil(total / pageSize);
+
+    return {
+      data,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages,
+        hasMore: page < totalPages
+      }
+    };
+  }
+
+  async makeDeposit(userId: string, amount: number): Promise<TransactionDto> {
+    await this.paymentProvider.deposit(userId, amount);
+    return await this.createTransaction(
+      userId,
+      TransactionType.DEPOSIT,
+      amount
+    );
+  }
+
+  async makeWithdrawal(
+    userId: string,
+    amount: number
+  ): Promise<TransactionDto> {
+    const balance = (await this.getBalance(userId)).balance;
+
+    if (balance < amount) {
+      throw new BadRequestException("Insufficient balance");
+    }
+
+    await this.paymentProvider.withdraw(userId, amount);
+    return await this.createTransaction(
+      userId,
+      TransactionType.WITHDRAWAL,
+      amount
+    );
+  }
+
+  async createTransaction(
+    userId: string,
+    type: TransactionType,
+    amount: number
+  ): Promise<TransactionDto> {
+    const transaction = await this.db.client.transaction.create({
+      data: {
+        userId,
+        type,
+        amount
+      }
+    });
+
+    return this.toTransactionDto(transaction);
+  }
+
+  private toTransactionDto(transaction: Transaction): TransactionDto {
+    return {
+      id: transaction.id,
+      type: transaction.type as TransactionType,
+      amount: transaction.amount,
+      createdAt: transaction.createdAt,
+      updatedAt: transaction.updatedAt
+    };
   }
 }

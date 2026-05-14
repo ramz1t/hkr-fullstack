@@ -12,6 +12,17 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const isDevelopment = configService.get<string>("NODE_ENV") !== "production";
   const port = configService.get<number>("API_PORT") ?? 4000;
+
+  const allowedOrigins = (configService.get<string>("ALLOWED_ORIGINS") ?? "")
+    .split(",")
+    .filter(Boolean);
+
+  app.setGlobalPrefix("api");
+  app.enableCors({
+    credentials: true,
+    origin: allowedOrigins
+  });
+
   const config = new DocumentBuilder()
     .setTitle("Casino API")
     .setDescription("Casino API documentation")

@@ -3,5 +3,5 @@ export enum TransactionType {
   WITHDRAWAL = "WITHDRAWAL",
   BET = "BET",
   WIN = "WIN",
-  ADJUSTMENT = "ADJUSTMENT",
+  ADJUSTMENT = "ADJUSTMENT"
 }
