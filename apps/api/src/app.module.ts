@@ -15,7 +15,7 @@ import { PaymentProviderModule } from "./common/payment/payment-provider.module"
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: "../../.env",
+      envFilePath: "../.env",
       isGlobal: true
     }),
     DatabaseModule,
