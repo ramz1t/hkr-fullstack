@@ -14,7 +14,7 @@ export class WalletsService {
   constructor(
     private readonly db: DatabaseService,
     private readonly paymentProvider: PaymentProviderService
-  ) {}
+  ) { }
 
   private buildBalance(transactions: TransactionDto[]): number {
     let balance = 0;
@@ -35,13 +35,13 @@ export class WalletsService {
     return balance;
   }
 
-  async getBalance(userId: string): Promise<number> {
+  async getBalance(userId: string): Promise<{ balance: number; }> {
     const transactions = await this.db.client.transaction.findMany({
       where: { userId }
     });
     const transactionsDto = transactions.map(this.toTransactionDto);
 
-    return this.buildBalance(transactionsDto);
+    return { balance: this.buildBalance(transactionsDto) };
   }
 
   async findByUserId(userId: string): Promise<WalletDto | null> {
@@ -109,7 +109,7 @@ export class WalletsService {
     userId: string,
     amount: number
   ): Promise<TransactionDto> {
-    const balance = await this.getBalance(userId);
+    const balance = (await this.getBalance(userId)).balance;
 
     if (balance < amount) {
       throw new BadRequestException("Insufficient balance");

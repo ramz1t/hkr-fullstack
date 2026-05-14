@@ -14,7 +14,7 @@ export class BetsService {
   constructor(
     private readonly db: DatabaseService,
     private readonly walletsService: WalletsService
-  ) {}
+  ) { }
 
   async placeCoinFlipBet(
     userId: string,
@@ -56,7 +56,7 @@ export class BetsService {
     const won = landedSide === side;
     const payout = won ? Math.floor(wager * 2 * +game.rtp) : 0;
 
-    const balance = await this.walletsService.getBalance(userId);
+    const balance = (await this.walletsService.getBalance(userId)).balance;
     if (balance < wager) {
       throw new BadRequestException("Insufficient balance");
     }
