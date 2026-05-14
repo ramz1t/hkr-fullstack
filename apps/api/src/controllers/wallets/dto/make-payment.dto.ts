@@ -1,10 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { PaymentAction } from "@repo/types";
 import { IsEnum, IsInt, Min } from "class-validator";
-
-export enum PaymentAction {
-  DEPOSIT = "DEPOSIT",
-  WITHDRAWAL = "WITHDRAWAL",
-}
 
 export class MakePaymentDto {
   @ApiProperty({ enum: PaymentAction })

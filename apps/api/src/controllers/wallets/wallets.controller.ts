@@ -2,12 +2,8 @@ import { Controller, Get, Post, Query, Body, UseGuards } from "@nestjs/common";
 import { WalletsService } from "./wallets.service";
 import { JwtAccessTokenGuard } from "../../common/guards";
 import { CurrentUser } from "../../common/decorators";
-import type { JwtPayload } from "@repo/types";
-import {
-  GetPaginatedTransactionsDto,
-  MakePaymentDto,
-  PaymentAction
-} from "./dto";
+import { PaymentAction, type JwtPayload } from "@repo/types";
+import { GetPaginatedTransactionsDto, MakePaymentDto } from "./dto";
 import { ApiBody } from "@nestjs/swagger";
 
 @Controller("wallet")
