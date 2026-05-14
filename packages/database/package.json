@@ -11,7 +11,12 @@
     "lint": "eslint --fix",
     "prisma:generate": "prisma generate",
     "prisma:format": "prisma format",
-    "prisma:seed": "bun run prisma/seed.ts"
+    "prisma:seed": "bun --env-file=../../.env run prisma/seed.ts",
+    "prisma:migrate": "prisma migrate deploy",
+    "prisma:reset": "prisma migrate reset --force"
+  },
+  "prisma": {
+    "seed": "bun --env-file=../../.env run prisma/seed.ts"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
