@@ -77,7 +77,9 @@ const Navbar = () => {
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => void navigate("/profile")}>
+                <DropdownMenuItem
+                  onSelect={() => void navigate("/profile/settings")}
+                >
                   <User />
                   Profile
                 </DropdownMenuItem>

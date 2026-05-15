@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet-async";
 
 const Wallet = () => {
   return (
-    <section className="mx-auto w-full px-4 py-10 flex flex-col gap-8 container">
+    <section className="page-container">
       <Helmet>
         <title>Wallet | CasinoApp</title>
       </Helmet>

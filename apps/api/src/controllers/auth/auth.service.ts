@@ -8,7 +8,8 @@ import type {
   LoginDto,
   RegisterDto,
   JwtPayload,
-  JwtPayloadWithTokens
+  JwtPayloadWithTokens,
+  SessionDto
 } from "@repo/types";
 import { API_ERRORS, UserRole } from "@repo/types";
 import crypto from "crypto";
@@ -40,7 +41,13 @@ export class AuthService {
       throw API_ERRORS.AUTH_INVALID_CREDENTIALS;
     }
 
-    return this.generateTokens(user.id, user.email, user.role, undefined, userAgent);
+    return this.generateTokens(
+      user.id,
+      user.email,
+      user.role,
+      undefined,
+      userAgent
+    );
   }
 
   async register(dto: RegisterDto, userAgent?: string) {
@@ -126,7 +133,7 @@ export class AuthService {
     });
   }
 
-  async getSessions(userId: string) {
+  async getSessions(userId: string): Promise<SessionDto[]> {
     return this.db.client.session.findMany({
       where: { userId },
       select: { id: true, userAgent: true, createdAt: true },

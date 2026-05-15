@@ -19,7 +19,7 @@ const Navbar = () => {
 
   return (
     <aside className="sticky top-0 h-screen w-56 shrink-0 flex flex-col border-r border-border bg-background">
-      <div className="flex items-center gap-2 px-5 py-5 border-b border-border">
+      <div className="flex items-center gap-2 p-5 border-b border-border">
         <Link
           to="/"
           className="text-lg font-bold tracking-tight font-heading text-primary"
@@ -29,7 +29,7 @@ const Navbar = () => {
       </div>
 
       {isAuthenticated && (
-        <nav className="flex-1 flex flex-col gap-1 px-3 py-4 overflow-y-auto">
+        <nav className="flex-1 flex flex-col gap-1 p-5 overflow-y-auto">
           {NAV_TABS.map(({ label, icon: Icon, to }) => (
             <NavLink
               key={to}
@@ -37,7 +37,7 @@ const Navbar = () => {
               end
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                  "flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary/10 text-primary font-semibold"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
