@@ -104,7 +104,7 @@ export function AuthProvider({ children, apiBaseUrl }: AuthProviderProps) {
     }
 
     try {
-      await fetch(`${apiBaseUrl}/api/auth/logout`, {
+      await fetch(`${apiBaseUrl}/auth/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
