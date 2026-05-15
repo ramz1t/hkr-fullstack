@@ -1,6 +1,6 @@
 import { type ComponentType } from "react";
 import { type LucideIcon, HandCoins } from "lucide-react";
-import { type BetDto, type CoinflipBetDto } from "@repo/types";
+import { CoinSide, type BetDto, type CoinflipBetDto } from "@repo/types";
 import Coinflip from "./pages/Games/coinflip";
 
 export interface GameConfig {
@@ -31,7 +31,9 @@ export const GAMES: GameConfig[] = [
       ];
     },
     computeOutcome: (hash) =>
-      parseInt(hash.substring(0, 2), 16) % 2 === 0 ? "HEADS" : "TAILS",
+      parseInt(hash.substring(0, 2), 16) % 2 === 0
+        ? CoinSide.HEADS
+        : CoinSide.TAILS,
     getStoredOutcome: (bet) => (bet as CoinflipBetDto).coinFlip.landedSide,
     algorithm:
       "SHA-256(serverSeed + clientSeed + nonce) - first 2 hex chars as uint8; even = HEADS, odd = TAILS",
@@ -43,7 +45,7 @@ export const GAMES: GameConfig[] = [
         { label: "First 2 hex chars", value: firstTwo },
         { label: "As decimal", value: String(decimal) },
         { label: "Parity", value: isEven ? "even" : "odd" },
-        { label: "Result", value: isEven ? "HEADS" : "TAILS" }
+        { label: "Result", value: isEven ? CoinSide.HEADS : CoinSide.TAILS }
       ];
     }
   }
