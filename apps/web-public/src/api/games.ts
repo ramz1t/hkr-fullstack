@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { useAxios } from "@repo/hooks/use-axios";
 import {
+  type BetDto,
   type CoinflipBetDto,
   type ApiResponse,
   type RevealedSeedsDto,
@@ -11,13 +12,7 @@ import {
 export const useCoinflipBet = () => {
   const axios = useAxios();
   return useMutation({
-    mutationFn: async ({
-      wager,
-      side
-    }: {
-      wager: number;
-      side: CoinSide;
-    }) => {
+    mutationFn: async ({ wager, side }: { wager: number; side: CoinSide }) => {
       const res = await axios.post<ApiResponse<CoinflipBetDto>>(
         "/games/coinflip/bet",
         { wager, side }
@@ -32,9 +27,7 @@ export const useBet = (betId: string | null) => {
   return useQuery({
     queryKey: ["bet", betId],
     queryFn: async () => {
-      const res = await axios.get<ApiResponse<CoinflipBetDto>>(
-        `/bets/${betId}`
-      );
+      const res = await axios.get<ApiResponse<BetDto>>(`/bets/${betId}`);
       return res.data.data!;
     },
     enabled: !!betId
@@ -78,9 +71,7 @@ export const useCurrentSeeds = () => {
   return useQuery({
     queryKey: ["provably-fair"],
     queryFn: async () => {
-      const res = await axios.get<ApiResponse<SeedsDto>>(
-        "/provably-fair"
-      );
+      const res = await axios.get<ApiResponse<SeedsDto>>("/provably-fair");
       return res.data.data!;
     }
   });

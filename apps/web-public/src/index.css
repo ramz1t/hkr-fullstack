@@ -59,6 +59,6 @@
     @apply font-sans h-full;
   }
   #root {
-    @apply h-full flex flex-col;
+    @apply min-h-full flex flex-col;
   }
 }

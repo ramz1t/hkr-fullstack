@@ -7,14 +7,21 @@ import {
   DropdownMenuTrigger
 } from "@repo/ui/dropdown-menu";
 import { cn } from "@repo/ui/utils";
-import { ChevronDown, Dice6Icon, HomeIcon, LogOut, ShieldCheck, User } from "lucide-react";
+import {
+  BadgeCheck,
+  ChevronDown,
+  Dice6Icon,
+  HomeIcon,
+  LogOut,
+  User
+} from "lucide-react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import WalletLink from "./WalletLink";
 
 const NAV_TABS = [
   { label: <HomeIcon />, to: "/" },
   { label: <Dice6Icon />, to: "/games" },
-  { label: <ShieldCheck />, to: "/verify" },
+  { label: <BadgeCheck />, to: "/verify" },
   { label: <WalletLink />, to: "/wallet" }
 ];
 
