@@ -1,159 +1,157 @@
-# Turborepo starter
+# hkr-fullstack
 
-This Turborepo starter is maintained by the Turborepo core team.
+Turborepo monorepo — NestJS API, Vite/React player app, Vite/React admin dashboard, Next.js docs site.
 
-## Using this example
+**Package manager:** Bun · **Runtime:** Node ≥ 18
 
-Run the following command:
+---
 
-```sh
-npx create-turbo@latest
-```
+## Structure
 
-## What's inside?
+| Path                | Description                            |
+| ------------------- | -------------------------------------- |
+| `apps/api`          | NestJS REST API (port 4000)            |
+| `apps/web-public`   | Player-facing React app (port 5000)    |
+| `apps/web-admin`    | Admin dashboard React app (port 5100)  |
+| `apps/docs`         | Next.js documentation site (port 3000) |
+| `packages/database` | Prisma schema + migrations             |
+| `packages/types`    | Shared TypeScript types/DTOs           |
+| `packages/ui`       | Shared React component library         |
+| `packages/hooks`    | Shared React hooks                     |
 
-This Turborepo includes the following packages/apps:
+---
 
-### Apps and Packages
+## Prerequisites
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- [Bun](https://bun.sh) ≥ 1.3
+- Node ≥ 18
+- PostgreSQL database
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+---
 
-### Utilities
+## Setup
 
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+### 1. Install dependencies
 
 ```sh
-cd my-turborepo
-turbo build
+bun install
 ```
 
-Without global `turbo`, use your package manager:
+### 2. Configure environment
+
+Copy and fill in each `.env.example`:
 
 ```sh
-cd my-turborepo
-npx turbo build
-bun dlx turbo build
-bun exec turbo build
+cp .env.example .env
+cp apps/api/.env.example apps/api/.env
+cp apps/web-public/.env.example apps/web-public/.env
+cp apps/web-admin/.env.example apps/web-admin/.env
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+**Root `.env`** — shared with Prisma:
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+```
+DATABASE_URL=<set-your-own>
+```
+
+**`apps/api/.env`:**
+
+```
+API_PORT=4000
+DATABASE_URL=<set-your-own>
+ALLOWED_ORIGINS=http://localhost:5000,http://localhost:5100
+JWT_ACCESS_SECRET=your_access_secret
+JWT_REFRESH_SECRET=your_refresh_secret
+JWT_ACCESS_TTL=900
+JWT_REFRESH_TTL=604800
+```
+
+**`apps/web-public/.env`:**
+
+```
+PORT=5000
+VITE_API_BASE_URL=http://localhost:4000/api
+VITE_JWT_ACCESS_TTL=900
+VITE_APP_NAME=casinoapp
+```
+
+**`apps/web-admin/.env`:**
+
+```
+PORT=5100
+VITE_API_BASE_URL=http://localhost:4000/api
+VITE_JWT_ACCESS_TTL=900
+VITE_APP_NAME=casinoapp
+```
+
+### 3. Generate Prisma client
 
 ```sh
-turbo build --filter=docs
+bun run prisma:generate
 ```
 
-Without global `turbo`:
+### 4. Build prisma
 
 ```sh
-npx turbo build --filter=docs
-bun exec turbo build --filter=docs
-bun exec turbo build --filter=docs
+bun --filter @repo/database build
 ```
 
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+### 5. Run database migrations
 
 ```sh
-cd my-turborepo
-turbo dev
+bun run prisma:migrate
 ```
 
-Without global `turbo`, use your package manager:
+### 6. (Optional) Seed the database
 
 ```sh
-cd my-turborepo
-npx turbo dev
-bun exec turbo dev
-bun exec turbo dev
+bun run prisma:seed
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+---
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+## Development
+
+Start all apps in parallel:
 
 ```sh
-turbo dev --filter=web
+bun run dev
 ```
 
-Without global `turbo`:
+Or run a single app:
 
 ```sh
-npx turbo dev --filter=web
-bun exec turbo dev --filter=web
-bun exec turbo dev --filter=web
+bun run dev --filter api --filter web-public --filter web-admin
 ```
 
-### Remote Caching
+| App        | URL                                                                       |
+| ---------- | ------------------------------------------------------------------------- |
+| API        | http://localhost:4000/api                                                 |
+| Swagger    | http://localhost:4000/swagger (add NODE_ENV=development to apps/api/.env) |
+| Player app | http://localhost:5000                                                     |
+| Admin app  | http://localhost:5100                                                     |
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+---
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+## Scripts
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+| Command                   | Description                                 |
+| ------------------------- | ------------------------------------------- |
+| `bun run dev`             | Start all apps in watch mode                |
+| `bun run build`           | Build all apps and packages                 |
+| `bun run lint`            | Lint all packages                           |
+| `bun run check-types`     | Type-check all packages                     |
+| `bun run format`          | Format all files with Prettier              |
+| `bun run prisma:generate` | Regenerate Prisma client                    |
+| `bun run prisma:migrate`  | Apply database migrations                   |
+| `bun run prisma:seed`     | Seed the database                           |
+| `bun run prisma:reset`    | Reset and re-seed the database              |
+| `bun run clean`           | Remove all build artifacts and node_modules |
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+---
+
+## Building for production
 
 ```sh
-cd my-turborepo
-turbo login
+bun run build
 ```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-bun exec turbo login
-bun exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-bun exec turbo link
-bun exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
