@@ -92,7 +92,7 @@ export function AuthProvider({ children, apiBaseUrl }: AuthProviderProps) {
 
     // we need this because token can be expired at the time of logout
     if (accessToken && isTokenExpired(accessToken) && tokens?.refreshToken) {
-      const res = await fetch(`${apiBaseUrl}/api/auth/refresh`, {
+      const res = await fetch(`${apiBaseUrl}/auth/refresh`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refreshToken: tokens.refreshToken })
