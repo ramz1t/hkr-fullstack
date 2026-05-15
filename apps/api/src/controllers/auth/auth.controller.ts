@@ -1,4 +1,15 @@
-import { Controller, Post, Body, UseGuards, Req } from "@nestjs/common";
+import {
+  Controller,
+  Post,
+  Get,
+  Delete,
+  Body,
+  Param,
+  Headers,
+  UseGuards,
+  Req,
+  ParseUUIDPipe
+} from "@nestjs/common";
 import { ApiBody } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
 import { JwtAccessTokenGuard, JwtRefreshTokenGuard } from "../../common/guards";
@@ -11,14 +22,20 @@ export class AuthController {
 
   @Post("login")
   @ApiBody({ type: LoginRequestDto })
-  async login(@Body() dto: LoginRequestDto) {
-    return this.authService.login(dto);
+  async login(
+    @Body() dto: LoginRequestDto,
+    @Headers("user-agent") userAgent?: string
+  ) {
+    return this.authService.login(dto, userAgent);
   }
 
   @Post("register")
   @ApiBody({ type: RegisterRequestDto })
-  async register(@Body() dto: RegisterRequestDto) {
-    return this.authService.register(dto);
+  async register(
+    @Body() dto: RegisterRequestDto,
+    @Headers("user-agent") userAgent?: string
+  ) {
+    return this.authService.register(dto, userAgent);
   }
 
   @Post("refresh")
@@ -31,5 +48,20 @@ export class AuthController {
   @UseGuards(JwtAccessTokenGuard)
   async logout(@Req() req: RequestWithUser<"accessToken">) {
     await this.authService.logout(req.user.sessionId);
+  }
+
+  @Get("sessions")
+  @UseGuards(JwtAccessTokenGuard)
+  async getSessions(@Req() req: RequestWithUser<"accessToken">) {
+    return this.authService.getSessions(req.user.sub);
+  }
+
+  @Delete("sessions/:sessionId")
+  @UseGuards(JwtAccessTokenGuard)
+  async revokeSession(
+    @Req() req: RequestWithUser<"accessToken">,
+    @Param("sessionId", ParseUUIDPipe) sessionId: string
+  ) {
+    await this.authService.revokeSession(req.user.sub, sessionId);
   }
 }
