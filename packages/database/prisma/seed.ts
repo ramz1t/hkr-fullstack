@@ -1,5 +1,5 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "./generated/client";
+import { PrismaClient, Role, TransactionType } from "./generated/client";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
@@ -12,6 +12,7 @@ dotenv.config({
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
+const PASSWORD = "password1234";
 
 async function main() {
   await prisma.$connect();
@@ -37,8 +38,8 @@ async function main() {
 
   await prisma.user.create({
     data: {
-      email: "test@example.com",
-      passwordHash: await bcrypt.hash("password1234", 12),
+      email: "user@casino.com",
+      passwordHash: await bcrypt.hash(PASSWORD, 12),
       provablyFair: {
         create: {
           serverSeed,
@@ -47,7 +48,22 @@ async function main() {
         }
       },
       transactions: {
-        create: { type: "DEPOSIT", amount: 10000 }
+        create: { type: TransactionType.DEPOSIT, amount: 10000 }
+      }
+    }
+  });
+
+  await prisma.user.create({
+    data: {
+      email: "admin@example.com",
+      passwordHash: await bcrypt.hash(PASSWORD, 12),
+      role: Role.ADMIN,
+      provablyFair: {
+        create: {
+          serverSeed,
+          serverSeedHash,
+          clientSeed: crypto.randomBytes(16).toString("hex")
+        }
       }
     }
   });
