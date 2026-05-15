@@ -13,6 +13,25 @@ import {
 import { useCoinflipBet, useWalletBalance, useBets } from "../../api";
 import { cn } from "@repo/ui/utils";
 
+const DetailRow = ({
+  label,
+  children
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <div className="flex flex-col gap-0.5">
+    <span className="text-xs text-muted-foreground">{label}</span>
+    {typeof children === "string" ? (
+      <code className="text-sm break-all bg-muted px-3 py-2 rounded select-all font-mono leading-relaxed">
+        {children}
+      </code>
+    ) : (
+      children
+    )}
+  </div>
+);
+
 const Coinflip = () => {
   const [side, setSide] = useState<CoinSide>(CoinSide.HEADS);
   const [wager, setWager] = useState("");
@@ -80,7 +99,7 @@ const Coinflip = () => {
               onChange={(e) => setWager(e.target.value)}
             />
           </div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-sm text-muted-foreground">
             Balance: {balance.toLocaleString()}
           </div>
           <Button
@@ -96,7 +115,7 @@ const Coinflip = () => {
             {bet.isPending ? "Flipping..." : "Flip Coin"}
           </Button>
           {bet.isError && (
-            <p className="text-xs text-red-500">
+            <p className="text-sm text-red-500">
               {bet.error?.message ?? "Bet failed"}
             </p>
           )}
@@ -114,7 +133,7 @@ const Coinflip = () => {
           <CardHeader>
             <CardTitle
               className={cn(
-                "text-lg",
+                "text-xl",
                 won ? "text-green-600" : "text-red-500"
               )}
             >
@@ -122,59 +141,45 @@ const Coinflip = () => {
             </CardTitle>
             <CardDescription>Bet result</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3 text-sm">
-            <div className="grid grid-cols-2 gap-2">
+          <CardContent className="flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-muted-foreground">Chosen</span>
-                <span className="font-medium">{result.coinFlip.chosenSide}</span>
+                <span className="text-base font-bold">
+                  {result.coinFlip.chosenSide}
+                </span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-muted-foreground">Landed</span>
-                <span className="font-medium">{result.coinFlip.landedSide}</span>
+                <span className="text-base font-bold">
+                  {result.coinFlip.landedSide}
+                </span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-muted-foreground">Wager</span>
-                <span className="font-medium">
+                <span className="text-base font-bold tabular-nums">
                   {result.wager.toLocaleString()}
                 </span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-muted-foreground">Payout</span>
-                <span className="font-medium">
+                <span className="text-base font-bold tabular-nums">
                   {result.payout.toLocaleString()}
                 </span>
               </div>
             </div>
             <hr className="border-border" />
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xs text-muted-foreground">Bet ID</span>
-                <code className="text-xs break-all bg-muted p-1 rounded select-all">
-                  {result.id}
-                </code>
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xs text-muted-foreground">Nonce</span>
-                <code className="text-xs bg-muted p-1 rounded select-all">
+            <div className="flex flex-col gap-3">
+              <DetailRow label="Bet ID">{result.id}</DetailRow>
+              <DetailRow label="Nonce">
+                <code className="text-sm bg-muted px-3 py-2 rounded select-all font-mono">
                   {result.nonce}
                 </code>
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xs text-muted-foreground">
-                  Server Seed Hash
-                </span>
-                <code className="text-xs break-all bg-muted p-1 rounded select-all">
-                  {result.serverSeedHash}
-                </code>
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xs text-muted-foreground">
-                  Client Seed
-                </span>
-                <code className="text-xs break-all bg-muted p-1 rounded select-all">
-                  {result.clientSeed}
-                </code>
-              </div>
+              </DetailRow>
+              <DetailRow label="Server Seed Hash">
+                {result.serverSeedHash}
+              </DetailRow>
+              <DetailRow label="Client Seed">{result.clientSeed}</DetailRow>
             </div>
           </CardContent>
         </Card>
@@ -187,44 +192,57 @@ const Coinflip = () => {
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           {bets.isLoading ? (
-            <div className="h-10 animate-pulse rounded bg-muted" />
+            <div className="h-12 animate-pulse rounded bg-muted" />
           ) : bets.data && bets.data.length > 0 ? (
             bets.data.map((betItem) => {
-              const betWon = betItem.coinFlip.chosenSide === betItem.coinFlip.landedSide;
+              const betWon =
+                betItem.coinFlip.chosenSide ===
+                betItem.coinFlip.landedSide;
               return (
                 <div
                   key={betItem.id}
-                  className="flex items-center justify-between gap-4 border-b border-border pb-2 last:border-0 last:pb-0"
+                  className="flex items-center justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0"
                 >
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className={betWon ? "text-green-600" : "text-red-500"}>
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={cn(
+                          "text-sm font-bold",
+                          betWon ? "text-green-600" : "text-red-500"
+                        )}
+                      >
                         {betItem.coinFlip.landedSide}
                       </span>
-                      <span className="text-xs text-muted-foreground">
-                        {betWon ? "+" : ""}{betItem.payout.toLocaleString()}
+                      <span
+                        className={cn(
+                          "text-sm tabular-nums",
+                          betWon ? "text-green-600" : "text-muted-foreground"
+                        )}
+                      >
+                        {betWon ? "+" : ""}
+                        {betItem.payout.toLocaleString()}
                       </span>
                     </div>
-                    <code className="text-[10px] text-muted-foreground truncate">
+                    <code className="text-xs break-all text-muted-foreground font-mono">
                       {betItem.id}
                     </code>
                   </div>
-                  <div className="text-xs text-muted-foreground shrink-0">
+                  <span className="text-sm text-muted-foreground tabular-nums shrink-0">
                     {betItem.wager.toLocaleString()}
-                  </div>
+                  </span>
                 </div>
               );
             })
           ) : (
-            <p className="text-xs text-muted-foreground">No bets yet</p>
+            <p className="text-sm text-muted-foreground">No bets yet</p>
           )}
           {bets.isFetchingNextPage && (
-            <div className="h-6 animate-pulse rounded bg-muted" />
+            <div className="h-8 animate-pulse rounded bg-muted" />
           )}
           {bets.hasNextPage && !bets.isFetchingNextPage && (
             <Button
               variant="outline"
-              size="xs"
+              size="sm"
               onClick={() => void bets.fetchNextPage()}
             >
               Load more

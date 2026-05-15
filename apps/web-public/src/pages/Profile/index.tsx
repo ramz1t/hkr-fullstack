@@ -12,6 +12,25 @@ import {
 } from "@repo/ui/card";
 import { useSetSeed } from "../../api";
 
+const DetailRow = ({
+  label,
+  children
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <div className="flex flex-col gap-0.5">
+    <span className="text-xs text-muted-foreground">{label}</span>
+    {typeof children === "string" ? (
+      <code className="text-sm break-all bg-muted px-3 py-2 rounded select-all font-mono leading-relaxed">
+        {children}
+      </code>
+    ) : (
+      children
+    )}
+  </div>
+);
+
 const Profile = () => {
   const [newSeed, setNewSeed] = useState("");
   const [seedSet, setSeedSet] = useState<{
@@ -68,25 +87,17 @@ const Profile = () => {
             {setSeed.isPending ? "Setting..." : "Set Seed"}
           </Button>
           {seedSet && (
-            <div className="flex flex-col gap-2 text-xs border border-border p-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">
-                  Server Seed Hash
-                </span>
-                <span className="font-mono text-[10px] break-all max-w-[300px] text-right">
-                  {seedSet.serverSeedHash}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Client Seed</span>
-                <span className="font-mono text-[10px] break-all max-w-[300px] text-right">
-                  {seedSet.clientSeed}
-                </span>
-              </div>
+            <div className="flex flex-col gap-3 border border-border p-4 rounded">
+              <DetailRow label="Server Seed Hash">
+                {seedSet.serverSeedHash}
+              </DetailRow>
+              <DetailRow label="Client Seed">
+                {seedSet.clientSeed}
+              </DetailRow>
             </div>
           )}
           {setSeed.isError && (
-            <p className="text-xs text-red-500">
+            <p className="text-sm text-red-500">
               {setSeed.error?.message ?? "Failed to set seed"}
             </p>
           )}

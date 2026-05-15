@@ -11,6 +11,26 @@ import {
   CardTitle
 } from "@repo/ui/card";
 import { useBet, useRevealSeeds } from "../../api";
+import { cn } from "@repo/ui/utils";
+
+const DetailRow = ({
+  label,
+  children
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <div className="flex flex-col gap-0.5">
+    <span className="text-xs text-muted-foreground">{label}</span>
+    {typeof children === "string" ? (
+      <code className="text-sm break-all bg-muted px-3 py-2 rounded select-all font-mono leading-relaxed">
+        {children}
+      </code>
+    ) : (
+      children
+    )}
+  </div>
+);
 
 const Verify = () => {
   const [revealed, setRevealed] = useState<{
@@ -102,34 +122,23 @@ const Verify = () => {
           </Button>
 
           {reveal.isError && (
-            <p className="text-xs text-red-500">
+            <p className="text-sm text-red-500">
               {reveal.error?.message ?? "Failed to reveal seeds"}
             </p>
           )}
 
           {revealed && (
-            <div className="flex flex-col gap-2 text-xs border border-border p-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Old Server Seed</span>
-                <span className="font-mono text-[10px] break-all max-w-[300px] text-right">
-                  {revealed.serverSeed}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">
-                  Old Server Seed Hash
-                </span>
-                <span className="font-mono text-[10px] break-all max-w-[300px] text-right">
-                  {revealed.serverSeedHash}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Client Seed</span>
-                <span className="font-mono text-[10px] break-all max-w-[300px] text-right">
-                  {revealed.clientSeed}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
+            <div className="flex flex-col gap-3 border border-border p-4 rounded">
+              <DetailRow label="Old Server Seed">
+                {revealed.serverSeed}
+              </DetailRow>
+              <DetailRow label="Old Server Seed Hash">
+                {revealed.serverSeedHash}
+              </DetailRow>
+              <DetailRow label="Client Seed">
+                {revealed.clientSeed}
+              </DetailRow>
+              <p className="text-sm text-muted-foreground">
                 A new server seed has been generated. Use the revealed seed
                 below to verify any past bet.
               </p>
@@ -165,74 +174,77 @@ const Verify = () => {
           </div>
 
           {bet.isError && (
-            <p className="text-xs text-red-500">
+            <p className="text-sm text-red-500">
               {bet.error?.message ?? "Bet not found"}
             </p>
           )}
 
           {bet.data && (
-            <div className="flex flex-col gap-3 text-sm border border-border p-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs text-muted-foreground">Chosen Side</span>
-                  <span className="font-medium">{bet.data.coinFlip.chosenSide}</span>
+            <div className="flex flex-col gap-4 border border-border p-4 rounded">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">
+                    Chosen Side
+                  </span>
+                  <span className="text-base font-bold">
+                    {bet.data.coinFlip.chosenSide}
+                  </span>
                 </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs text-muted-foreground">Landed Side</span>
-                  <span className="font-medium">{bet.data.coinFlip.landedSide}</span>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">
+                    Landed Side
+                  </span>
+                  <span className="text-base font-bold">
+                    {bet.data.coinFlip.landedSide}
+                  </span>
                 </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs text-muted-foreground">Wager</span>
-                  <span className="font-medium">{bet.data.wager.toLocaleString()}</span>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">
+                    Wager
+                  </span>
+                  <span className="text-base font-bold tabular-nums">
+                    {bet.data.wager.toLocaleString()}
+                  </span>
                 </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs text-muted-foreground">Payout</span>
-                  <span className="font-medium">{bet.data.payout.toLocaleString()}</span>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">
+                    Payout
+                  </span>
+                  <span className="text-base font-bold tabular-nums">
+                    {bet.data.payout.toLocaleString()}
+                  </span>
                 </div>
               </div>
               <hr className="border-border" />
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs text-muted-foreground">Bet ID</span>
-                  <code className="text-xs break-all bg-muted p-1 rounded select-all">
-                    {bet.data.id}
+              <div className="flex flex-col gap-3">
+                <DetailRow label="Bet ID">{bet.data.id}</DetailRow>
+                <DetailRow label="Nonce">
+                  <code className="text-sm bg-muted px-3 py-2 rounded select-all font-mono">
+                    {bet.data.nonce}
                   </code>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs text-muted-foreground">Nonce</span>
-                  <code className="text-xs bg-muted p-1 rounded select-all">{bet.data.nonce}</code>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs text-muted-foreground">Server Seed Hash</span>
-                  <code className="text-xs break-all bg-muted p-1 rounded select-all">
-                    {bet.data.serverSeedHash}
-                  </code>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs text-muted-foreground">Client Seed</span>
-                  <code className="text-xs break-all bg-muted p-1 rounded select-all">
-                    {bet.data.clientSeed}
-                  </code>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs text-muted-foreground">Server Seed</span>
-                  {bet.data.serverSeed ? (
-                    <code className="text-xs break-all bg-muted p-1 rounded select-all">
-                      {bet.data.serverSeed}
-                    </code>
-                  ) : (
-                    <span className="text-xs text-red-500">Not revealed yet</span>
+                </DetailRow>
+                <DetailRow label="Server Seed Hash">
+                  {bet.data.serverSeedHash}
+                </DetailRow>
+                <DetailRow label="Client Seed">
+                  {bet.data.clientSeed}
+                </DetailRow>
+                <DetailRow label="Server Seed">
+                  {bet.data.serverSeed ?? (
+                    <span className="text-sm text-red-500">
+                      Not revealed yet — reveal your seed above
+                    </span>
                   )}
-                </div>
+                </DetailRow>
               </div>
 
               {bet.data.serverSeed && (
                 <>
-                  <hr className="border-border my-1" />
-                  <p className="text-xs font-semibold">Verification</p>
+                  <hr className="border-border" />
+                  <p className="text-sm font-semibold">Verification</p>
                   {!expected && (
                     <Button
-                      size="xs"
+                      size="sm"
                       onClick={() => void computeExpected()}
                       disabled={verifying}
                     >
@@ -243,33 +255,55 @@ const Verify = () => {
                     const matches =
                       bet.data.coinFlip.landedSide === expected.result;
                     return (
-                      <div className="flex flex-col gap-1 text-[10px]">
+                      <div className="flex flex-col gap-3 text-sm">
                         <p>
-                          SHA-256(serverSeed + clientSeed + nonce) =
+                          <span className="text-muted-foreground">
+                            SHA-256(
+                          </span>
+                          <code className="bg-muted px-1 font-mono">
+                            serverSeed
+                          </code>
+                          <span className="text-muted-foreground"> + </span>
+                          <code className="bg-muted px-1 font-mono">
+                            clientSeed
+                          </code>
+                          <span className="text-muted-foreground"> + </span>
+                          <code className="bg-muted px-1 font-mono">
+                            nonce
+                          </code>
+                          <span className="text-muted-foreground">
+                            ) =
+                          </span>
                         </p>
-                        <code className="break-all bg-muted p-1 rounded">
+                        <code className="text-sm break-all bg-muted p-3 rounded select-all font-mono leading-relaxed">
                           {expected.hash}
                         </code>
                         <p>
                           First 2 hex chars:{" "}
-                          <code className="bg-muted px-1">
+                          <code className="bg-muted px-2 py-0.5 rounded font-mono">
                             {expected.firstTwo}
                           </code>
                         </p>
                         <p>
-                          {expected.firstTwo} (hex) ={" "}
-                          {parseInt(expected.firstTwo, 16)} (dec) →{" "}
+                          <code className="bg-muted px-2 py-0.5 rounded font-mono">
+                            {expected.firstTwo}
+                          </code>
+                          {" (hex) = "}
+                          <strong>{parseInt(expected.firstTwo, 16)}</strong>
+                          {" (dec) → "}
                           {parseInt(expected.firstTwo, 16) % 2 === 0
                             ? "even"
                             : "odd"}
-                          → {expected.result}
+                          {" → "}
+                          <strong>{expected.result}</strong>
                         </p>
                         <p
-                          className={
+                          className={cn(
+                            "text-base font-bold",
                             matches
-                              ? "text-green-600 font-semibold"
-                              : "text-red-500 font-semibold"
-                          }
+                              ? "text-green-600"
+                              : "text-red-500"
+                          )}
                         >
                           {matches
                             ? "✓ Result matches the bet outcome"
