@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -10,42 +10,28 @@ import {
   CardHeader,
   CardTitle
 } from "@repo/ui/card";
-import { useSetSeed } from "../../api";
-
-const DetailRow = ({
-  label,
-  children
-}: {
-  label: string;
-  children: React.ReactNode;
-}) => (
-  <div className="flex flex-col gap-0.5">
-    <span className="text-xs text-muted-foreground">{label}</span>
-    {typeof children === "string" ? (
-      <code className="text-sm break-all bg-muted px-3 py-2 rounded select-all font-mono leading-relaxed">
-        {children}
-      </code>
-    ) : (
-      children
-    )}
-  </div>
-);
+import { useSetSeed, useCurrentSeeds } from "../../api";
 
 const Profile = () => {
-  const [newSeed, setNewSeed] = useState("");
-  const [seedSet, setSeedSet] = useState<{
-    serverSeedHash: string;
-    clientSeed: string;
-  } | null>(null);
+  const { data: currentSeeds, isLoading } = useCurrentSeeds();
+  const [clientSeed, setClientSeed] = useState("");
+  const [serverSeedHash, setServerSeedHash] = useState("");
 
   const setSeed = useSetSeed();
 
-  const handleSetSeed = () => {
-    if (!newSeed.trim()) return;
-    setSeed.mutate(newSeed.trim(), {
+  useEffect(() => {
+    if (currentSeeds) {
+      setClientSeed(currentSeeds.clientSeed);
+      setServerSeedHash(currentSeeds.serverSeedHash);
+    }
+  }, [currentSeeds]);
+
+  const handleSave = () => {
+    if (!clientSeed.trim()) return;
+    setSeed.mutate(clientSeed.trim(), {
       onSuccess: (data) => {
-        setSeedSet(data);
-        setNewSeed("");
+        setServerSeedHash(data.serverSeedHash);
+        setClientSeed(data.clientSeed);
       }
     });
   };
@@ -66,40 +52,43 @@ const Profile = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Client Seed</CardTitle>
+          <CardTitle>Provably Fair Seeds</CardTitle>
           <CardDescription>
-            Change your client seed used for provably fair game outcomes
+            Your seeds determine game outcomes. Change your client seed at any
+            time.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label>New Client Seed</Label>
-            <Input
-              placeholder="Enter your client seed..."
-              value={newSeed}
-              onChange={(e) => setNewSeed(e.target.value)}
-            />
-          </div>
-          <Button
-            onClick={handleSetSeed}
-            disabled={setSeed.isPending || !newSeed.trim()}
-          >
-            {setSeed.isPending ? "Setting..." : "Set Seed"}
-          </Button>
-          {seedSet && (
-            <div className="flex flex-col gap-3 border border-border p-4 rounded">
-              <DetailRow label="Server Seed Hash">
-                {seedSet.serverSeedHash}
-              </DetailRow>
-              <DetailRow label="Client Seed">
-                {seedSet.clientSeed}
-              </DetailRow>
-            </div>
-          )}
-          {setSeed.isError && (
-            <p className="text-sm text-red-500">
-              {setSeed.error?.message ?? "Failed to set seed"}
-            </p>
+          {isLoading ? (
+            <div className="h-24 animate-pulse rounded bg-muted" />
+          ) : (
+            <>
+              <div className="flex flex-col gap-1.5">
+                <Label>Server Seed Hash</Label>
+                <code className="text-sm break-all bg-muted px-3 py-2 rounded select-all font-mono leading-relaxed">
+                  {serverSeedHash}
+                </code>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label>Client Seed</Label>
+                <Input
+                  placeholder="Enter your client seed..."
+                  value={clientSeed}
+                  onChange={(e) => setClientSeed(e.target.value)}
+                />
+              </div>
+              <Button
+                onClick={handleSave}
+                disabled={setSeed.isPending || !clientSeed.trim()}
+              >
+                {setSeed.isPending ? "Saving..." : "Save"}
+              </Button>
+              {setSeed.isError && (
+                <p className="text-sm text-red-500">
+                  {setSeed.error?.message ?? "Failed to save"}
+                </p>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

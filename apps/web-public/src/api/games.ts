@@ -73,6 +73,19 @@ export const useBets = (gameSlug?: string) => {
   });
 };
 
+export const useCurrentSeeds = () => {
+  const axios = useAxios();
+  return useQuery({
+    queryKey: ["provably-fair"],
+    queryFn: async () => {
+      const res = await axios.get<ApiResponse<SeedsDto>>(
+        "/provably-fair"
+      );
+      return res.data.data!;
+    }
+  });
+};
+
 export const useSetSeed = () => {
   const axios = useAxios();
   return useMutation({
