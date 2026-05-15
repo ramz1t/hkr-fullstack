@@ -11,13 +11,7 @@ import {
 export const useCoinflipBet = () => {
   const axios = useAxios();
   return useMutation({
-    mutationFn: async ({
-      wager,
-      side
-    }: {
-      wager: number;
-      side: CoinSide;
-    }) => {
+    mutationFn: async ({ wager, side }: { wager: number; side: CoinSide }) => {
       const res = await axios.post<ApiResponse<CoinflipBetDto>>(
         "/games/coinflip/bet",
         { wager, side }
@@ -78,9 +72,7 @@ export const useCurrentSeeds = () => {
   return useQuery({
     queryKey: ["provably-fair"],
     queryFn: async () => {
-      const res = await axios.get<ApiResponse<SeedsDto>>(
-        "/provably-fair"
-      );
+      const res = await axios.get<ApiResponse<SeedsDto>>("/provably-fair");
       return res.data.data!;
     }
   });

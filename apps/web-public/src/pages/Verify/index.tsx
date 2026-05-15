@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
+import { DetailRow } from "@repo/ui/details-row";
 import {
   Card,
   CardContent,
@@ -12,25 +13,7 @@ import {
 } from "@repo/ui/card";
 import { useBet, useRevealSeeds } from "../../api";
 import { cn } from "@repo/ui/utils";
-
-const DetailRow = ({
-  label,
-  children
-}: {
-  label: string;
-  children: React.ReactNode;
-}) => (
-  <div className="flex flex-col gap-0.5">
-    <span className="text-xs text-muted-foreground">{label}</span>
-    {typeof children === "string" ? (
-      <code className="text-sm break-all bg-muted px-3 py-2 rounded select-all font-mono leading-relaxed">
-        {children}
-      </code>
-    ) : (
-      children
-    )}
-  </div>
-);
+import { ArrowRight } from "lucide-react";
 
 const Verify = () => {
   const [revealed, setRevealed] = useState<{
@@ -108,16 +91,12 @@ const Verify = () => {
         <CardHeader>
           <CardTitle>Reveal & Rotate Server Seed</CardTitle>
           <CardDescription>
-            Revealing rotates the current server seed and exposes the old one
-            so you can verify past bets
+            Revealing rotates the current server seed and exposes the old one so
+            you can verify past bets
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <Button
-            size="lg"
-            onClick={handleReveal}
-            disabled={reveal.isPending}
-          >
+          <Button size="lg" onClick={handleReveal} disabled={reveal.isPending}>
             {reveal.isPending ? "Revealing..." : "Reveal & Rotate Seeds"}
           </Button>
 
@@ -135,9 +114,7 @@ const Verify = () => {
               <DetailRow label="Old Server Seed Hash">
                 {revealed.serverSeedHash}
               </DetailRow>
-              <DetailRow label="Client Seed">
-                {revealed.clientSeed}
-              </DetailRow>
+              <DetailRow label="Client Seed">{revealed.clientSeed}</DetailRow>
               <p className="text-sm text-muted-foreground">
                 A new server seed has been generated. Use the revealed seed
                 below to verify any past bet.
@@ -199,17 +176,13 @@ const Verify = () => {
                   </span>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-xs text-muted-foreground">
-                    Wager
-                  </span>
+                  <span className="text-xs text-muted-foreground">Wager</span>
                   <span className="text-base font-bold tabular-nums">
                     {bet.data.wager.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-xs text-muted-foreground">
-                    Payout
-                  </span>
+                  <span className="text-xs text-muted-foreground">Payout</span>
                   <span className="text-base font-bold tabular-nums">
                     {bet.data.payout.toLocaleString()}
                   </span>
@@ -226,9 +199,7 @@ const Verify = () => {
                 <DetailRow label="Server Seed Hash">
                   {bet.data.serverSeedHash}
                 </DetailRow>
-                <DetailRow label="Client Seed">
-                  {bet.data.clientSeed}
-                </DetailRow>
+                <DetailRow label="Client Seed">{bet.data.clientSeed}</DetailRow>
                 <DetailRow label="Server Seed">
                   {bet.data.serverSeed ?? (
                     <span className="text-sm text-red-500">
@@ -251,67 +222,64 @@ const Verify = () => {
                       {verifying ? "Computing..." : "Verify Outcome"}
                     </Button>
                   )}
-                  {expected && (() => {
-                    const matches =
-                      bet.data.coinFlip.landedSide === expected.result;
-                    return (
-                      <div className="flex flex-col gap-3 text-sm">
-                        <p>
-                          <span className="text-muted-foreground">
-                            SHA-256(
-                          </span>
-                          <code className="bg-muted px-1 font-mono">
-                            serverSeed
+                  {expected &&
+                    (() => {
+                      const matches =
+                        bet.data.coinFlip.landedSide === expected.result;
+                      return (
+                        <div className="flex flex-col gap-3 text-sm">
+                          <p>
+                            <span className="text-muted-foreground">
+                              SHA-256(
+                            </span>
+                            <code className="bg-muted px-1 font-mono">
+                              serverSeed
+                            </code>
+                            <span className="text-muted-foreground"> + </span>
+                            <code className="bg-muted px-1 font-mono">
+                              clientSeed
+                            </code>
+                            <span className="text-muted-foreground"> + </span>
+                            <code className="bg-muted px-1 font-mono">
+                              nonce
+                            </code>
+                            <span className="text-muted-foreground">) =</span>
+                          </p>
+                          <code className="text-sm break-all bg-muted p-3 rounded select-all font-mono leading-relaxed">
+                            {expected.hash}
                           </code>
-                          <span className="text-muted-foreground"> + </span>
-                          <code className="bg-muted px-1 font-mono">
-                            clientSeed
-                          </code>
-                          <span className="text-muted-foreground"> + </span>
-                          <code className="bg-muted px-1 font-mono">
-                            nonce
-                          </code>
-                          <span className="text-muted-foreground">
-                            ) =
-                          </span>
-                        </p>
-                        <code className="text-sm break-all bg-muted p-3 rounded select-all font-mono leading-relaxed">
-                          {expected.hash}
-                        </code>
-                        <p>
-                          First 2 hex chars:{" "}
-                          <code className="bg-muted px-2 py-0.5 rounded font-mono">
-                            {expected.firstTwo}
-                          </code>
-                        </p>
-                        <p>
-                          <code className="bg-muted px-2 py-0.5 rounded font-mono">
-                            {expected.firstTwo}
-                          </code>
-                          {" (hex) = "}
-                          <strong>{parseInt(expected.firstTwo, 16)}</strong>
-                          {" (dec) → "}
-                          {parseInt(expected.firstTwo, 16) % 2 === 0
-                            ? "even"
-                            : "odd"}
-                          {" → "}
-                          <strong>{expected.result}</strong>
-                        </p>
-                        <p
-                          className={cn(
-                            "text-base font-bold",
-                            matches
-                              ? "text-green-600"
-                              : "text-red-500"
-                          )}
-                        >
-                          {matches
-                            ? "✓ Result matches the bet outcome"
-                            : "✗ Result does NOT match"}
-                        </p>
-                      </div>
-                    );
-                  })()}
+                          <p>
+                            First 2 hex chars:{" "}
+                            <code className="bg-muted px-2 py-0.5 rounded font-mono">
+                              {expected.firstTwo}
+                            </code>
+                          </p>
+                          <p className="flex items-center">
+                            <code className="bg-muted px-2 py-0.5 rounded font-mono">
+                              {expected.firstTwo}
+                            </code>
+                            {" (hex) = "}
+                            <strong>{parseInt(expected.firstTwo, 16)}</strong>
+                            {" (dec) "}
+                            {parseInt(expected.firstTwo, 16) % 2 === 0
+                              ? "even"
+                              : "odd"}
+                            <ArrowRight size="16" />
+                            <strong>{expected.result}</strong>
+                          </p>
+                          <p
+                            className={cn(
+                              "text-base font-bold",
+                              matches ? "text-green-600" : "text-red-500"
+                            )}
+                          >
+                            {matches
+                              ? "✓ Result matches the bet outcome"
+                              : "✗ Result does NOT match"}
+                          </p>
+                        </div>
+                      );
+                    })()}
                 </>
               )}
             </div>

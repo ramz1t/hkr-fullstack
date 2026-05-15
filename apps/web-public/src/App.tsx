@@ -2,7 +2,9 @@ import { Suspense } from "react";
 import { lazily } from "react-lazily";
 import { Route, Routes } from "react-router-dom";
 import { Navbar, ProtectedRoute } from "./components";
-const { Login, Wallet, Games, CoinflipPage, Profile, Verify } = lazily(() => import("./pages"));
+const { Login, Wallet, Games, GamePage, Profile, Verify } = lazily(
+  () => import("./pages")
+);
 
 const App = () => {
   return (
@@ -16,7 +18,7 @@ const App = () => {
               <Route path="/login" element={<Login />} />
               <Route element={<ProtectedRoute />}>
                 <Route path="/games" element={<Games />} />
-                <Route path="/games/coinflip" element={<CoinflipPage />} />
+                <Route path="/games/:slug" element={<GamePage />} />
                 <Route path="/verify" element={<Verify />} />
                 <Route path="/wallet" element={<Wallet />} />
                 <Route path="/profile" element={<Profile />} />
