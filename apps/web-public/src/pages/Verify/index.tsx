@@ -13,8 +13,9 @@ import {
 } from "@repo/ui/card";
 import { useBet, useRevealSeeds } from "../../api";
 import { cn } from "@repo/ui/utils";
-import { ArrowRight } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+import { GAMES } from "../../config";
+import { BadgeCheck, BadgeX } from "lucide-react";
 
 const Verify = () => {
   const [revealed, setRevealed] = useState<{
@@ -27,13 +28,15 @@ const Verify = () => {
   const [lookupId, setLookupId] = useState("");
   const [expected, setExpected] = useState<{
     hash: string;
-    firstTwo: string;
     result: string;
   } | null>(null);
   const [verifying, setVerifying] = useState(false);
 
   const reveal = useRevealSeeds();
   const bet = useBet(lookupId || null);
+  const gameConfig = bet.data
+    ? GAMES.find((g) => g.slug === bet.data!.gameSlug)
+    : undefined;
 
   const handleReveal = () => {
     reveal.mutate(undefined, {
@@ -52,7 +55,7 @@ const Verify = () => {
 
   const computeExpected = async () => {
     const b = bet.data;
-    if (!b?.serverSeed) return;
+    if (!b?.serverSeed || !gameConfig) return;
     setVerifying(true);
     try {
       const str = b.serverSeed + b.clientSeed + b.nonce;
@@ -61,13 +64,7 @@ const Verify = () => {
       const hash = [...new Uint8Array(buf)]
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
-      const firstTwo = hash.substring(0, 2);
-      const isEven = parseInt(firstTwo, 16) % 2 === 0;
-      setExpected({
-        hash,
-        firstTwo,
-        result: isEven ? "HEADS" : "TAILS"
-      });
+      setExpected({ hash, result: gameConfig.computeOutcome(hash) });
     } finally {
       setVerifying(false);
     }
@@ -164,22 +161,17 @@ const Verify = () => {
           {bet.data && (
             <div className="flex flex-col gap-4 border border-border p-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <span className="text-xs text-muted-foreground">
-                    Chosen Side
-                  </span>
-                  <span className="text-base font-bold">
-                    {bet.data.coinFlip.chosenSide}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-xs text-muted-foreground">
-                    Landed Side
-                  </span>
-                  <span className="text-base font-bold">
-                    {bet.data.coinFlip.landedSide}
-                  </span>
-                </div>
+                {gameConfig &&
+                  gameConfig
+                    .formatBetDetails(bet.data)
+                    .map(({ title, value }) => (
+                      <div key={title} className="flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground">
+                          {title}
+                        </span>
+                        <span className="text-base font-bold">{value}</span>
+                      </div>
+                    ))}
                 <div className="flex flex-col gap-1">
                   <span className="text-xs text-muted-foreground">Wager</span>
                   <span className="text-base font-bold tabular-nums">
@@ -210,10 +202,12 @@ const Verify = () => {
                 </DetailRow>
               </div>
 
-              {bet.data.serverSeed && (
+              {bet.data.serverSeed && gameConfig && (
                 <>
                   <hr className="border-border" />
-                  <p className="text-sm font-semibold">Verification</p>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm font-semibold">Verification</p>
+                  </div>
                   {!expected && (
                     <Button
                       onClick={() => void computeExpected()}
@@ -224,58 +218,48 @@ const Verify = () => {
                   )}
                   {expected &&
                     (() => {
-                      const matches =
-                        bet.data.coinFlip.landedSide === expected.result;
+                      const storedOutcome = gameConfig.getStoredOutcome(
+                        bet.data!
+                      );
+                      const matches = storedOutcome === expected.result;
                       return (
                         <div className="flex flex-col gap-3 text-sm">
-                          <p>
-                            <span className="text-muted-foreground">
-                              SHA-256(
-                            </span>
-                            <code className="bg-muted px-1 font-mono">
-                              serverSeed
-                            </code>
-                            <span className="text-muted-foreground"> + </span>
-                            <code className="bg-muted px-1 font-mono">
-                              clientSeed
-                            </code>
-                            <span className="text-muted-foreground"> + </span>
-                            <code className="bg-muted px-1 font-mono">
-                              nonce
-                            </code>
-                            <span className="text-muted-foreground">) =</span>
-                          </p>
-                          <code className="text-sm break-all bg-muted p-3 rounded select-all font-mono leading-relaxed">
+                          <DetailRow label="SHA-256 Hash">
                             {expected.hash}
-                          </code>
-                          <p>
-                            First 2 hex chars:{" "}
-                            <code className="bg-muted px-2 py-0.5 rounded font-mono">
-                              {expected.firstTwo}
-                            </code>
-                          </p>
-                          <p className="flex items-center">
-                            <code className="bg-muted px-2 py-0.5 rounded font-mono">
-                              {expected.firstTwo}
-                            </code>
-                            {" (hex) = "}
-                            <strong>{parseInt(expected.firstTwo, 16)}</strong>
-                            {" (dec) "}
-                            {parseInt(expected.firstTwo, 16) % 2 === 0
-                              ? "even"
-                              : "odd"}
-                            <ArrowRight size="16" />
-                            <strong>{expected.result}</strong>
-                          </p>
+                          </DetailRow>
+                          <hr className="border-border" />
+                          <DetailRow label="Algorithm">
+                            {gameConfig.algorithm}
+                          </DetailRow>
+                          <hr className="border-border" />
+                          {gameConfig
+                            .explain(expected.hash)
+                            .map(({ label, value }) => (
+                              <DetailRow key={label} label={label}>
+                                <strong>{value}</strong>
+                              </DetailRow>
+                            ))}
+                          <hr className="border-border" />
+                          <DetailRow label="Stored Result">
+                            <strong>{storedOutcome}</strong>
+                          </DetailRow>
                           <p
                             className={cn(
-                              "text-base font-bold",
+                              "text-base font-bold flex items-center gap-2",
                               matches ? "text-green-600" : "text-red-500"
                             )}
                           >
-                            {matches
-                              ? "✓ Result matches the bet outcome"
-                              : "✗ Result does NOT match"}
+                            {matches ? (
+                              <>
+                                <BadgeCheck />
+                                Result matches the bet outcome
+                              </>
+                            ) : (
+                              <>
+                                <BadgeX />
+                                Result does NOT match
+                              </>
+                            )}
                           </p>
                         </div>
                       );

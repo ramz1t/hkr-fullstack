@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { useAxios } from "@repo/hooks/use-axios";
 import {
+  type BetDto,
   type CoinflipBetDto,
   type ApiResponse,
   type RevealedSeedsDto,
@@ -26,9 +27,7 @@ export const useBet = (betId: string | null) => {
   return useQuery({
     queryKey: ["bet", betId],
     queryFn: async () => {
-      const res = await axios.get<ApiResponse<CoinflipBetDto>>(
-        `/bets/${betId}`
-      );
+      const res = await axios.get<ApiResponse<BetDto>>(`/bets/${betId}`);
       return res.data.data!;
     },
     enabled: !!betId

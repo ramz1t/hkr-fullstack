@@ -19,7 +19,7 @@ export class BetsService {
   constructor(
     private readonly db: DatabaseService,
     private readonly walletsService: WalletsService
-  ) { }
+  ) {}
 
   async placeCoinFlipBet(
     userId: string,
@@ -97,6 +97,7 @@ export class BetsService {
     return {
       id: bet.id,
       gameId: game.id,
+      gameSlug: game.slug,
       wager: bet.wager,
       payout: bet.payout,
       nonce: bet.nonce,
@@ -110,7 +111,7 @@ export class BetsService {
   async getBet(userId: string, betId: string): Promise<CoinflipBetDto> {
     const bet = await this.db.client.bet.findUnique({
       where: { id: betId },
-      include: { coinFlip: true }
+      include: { coinFlip: true, game: true }
     });
 
     if (!bet) {
@@ -135,6 +136,7 @@ export class BetsService {
     return {
       id: bet.id,
       gameId: bet.gameId,
+      gameSlug: bet.game.slug,
       wager: bet.wager,
       payout: bet.payout,
       nonce: bet.nonce,
@@ -169,7 +171,7 @@ export class BetsService {
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * pageSize,
         take: pageSize,
-        include: { coinFlip: true }
+        include: { coinFlip: true, game: true }
       }),
       this.db.client.bet.count({ where })
     ]);
@@ -185,6 +187,7 @@ export class BetsService {
       return {
         id: bet.id,
         gameId: bet.gameId,
+        gameSlug: bet.game.slug,
         wager: bet.wager,
         payout: bet.payout,
         nonce: bet.nonce,
