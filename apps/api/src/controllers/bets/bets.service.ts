@@ -198,7 +198,7 @@ export class BetsService {
           chosenSide: bet.coinFlip!.chosenSide as CoinSide,
           landedSide: bet.coinFlip!.landedSide as CoinSide
         }
-      } as CoinflipBetDto;
+      };
     });
 
     const totalPages = Math.ceil(total / pageSize);

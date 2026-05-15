@@ -23,8 +23,9 @@ import {
 } from "lucide-react";
 import { Input } from "@repo/ui/input";
 import { StatCard } from "./StatCard";
-import type { UserDto } from "@repo/types";
+import type { ApiResponse, UserDto } from "@repo/types";
 import { Helmet } from "react-helmet-async";
+import type { AxiosError } from "axios";
 
 const Users = () => {
   const axios = useAxios();
@@ -56,8 +57,8 @@ const Users = () => {
       toast.success("User access revoked successfully");
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Failed to ban user");
+    onError: (err: AxiosError<ApiResponse<unknown>>) => {
+      toast.error(err?.response?.data?.error?.message || "Failed to ban user");
     }
   });
 
@@ -70,8 +71,10 @@ const Users = () => {
       toast.success("User access restored successfully");
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Failed to unban user");
+    onError: (err: AxiosError<ApiResponse<unknown>>) => {
+      toast.error(
+        err?.response?.data?.error?.message || "Failed to unban user"
+      );
     }
   });
 

@@ -31,7 +31,7 @@ export const useAxios = (): AxiosInstance => {
 
     inst.interceptors.request.use(async (config) => {
       let accessToken = tokensRef.current?.accessToken;
-      let refreshToken = tokensRef.current?.refreshToken;
+      const refreshToken = tokensRef.current?.refreshToken;
 
       if (!accessToken) return config;
 
