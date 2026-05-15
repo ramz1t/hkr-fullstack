@@ -19,7 +19,7 @@ export const useCoinflipBet = () => {
       side: CoinSide;
     }) => {
       const res = await axios.post<ApiResponse<CoinflipBetDto>>(
-        "/api/games/coinflip/bet",
+        "/games/coinflip/bet",
         { wager, side }
       );
       return res.data.data!;
@@ -33,7 +33,7 @@ export const useBet = (betId: string | null) => {
     queryKey: ["bet", betId],
     queryFn: async () => {
       const res = await axios.get<ApiResponse<CoinflipBetDto>>(
-        `/api/bets/${betId}`
+        `/bets/${betId}`
       );
       return res.data.data!;
     },
@@ -46,7 +46,7 @@ export const useRevealSeeds = () => {
   return useMutation({
     mutationFn: async () => {
       const res = await axios.post<ApiResponse<RevealedSeedsDto>>(
-        "/api/provably-fair/reveal"
+        "/provably-fair/reveal"
       );
       return res.data.data!;
     }
@@ -58,7 +58,7 @@ export const useSetSeed = () => {
   return useMutation({
     mutationFn: async (clientSeed: string) => {
       const res = await axios.post<ApiResponse<SeedsDto>>(
-        "/api/provably-fair/seed",
+        "/provably-fair/seed",
         { clientSeed }
       );
       return res.data.data!;
