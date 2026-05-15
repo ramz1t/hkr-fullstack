@@ -10,7 +10,7 @@ export const DetailRow = ({
       {label}
     </span>
     {typeof children === "string" ? (
-      <code className="text-sm break-all bg-muted px-3 py-2 select-all font-mono leading-relaxed">
+      <code className="text-sm break-all bg-muted px-3 py-2 select-all font-mono leading-relaxed min-h-10">
         {children}
       </code>
     ) : (

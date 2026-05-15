@@ -14,6 +14,7 @@ import {
 import { useBet, useRevealSeeds } from "../../api";
 import { cn } from "@repo/ui/utils";
 import { ArrowRight } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 const Verify = () => {
   const [revealed, setRevealed] = useState<{
@@ -21,7 +22,8 @@ const Verify = () => {
     serverSeedHash: string;
     clientSeed: string;
   } | null>(null);
-  const [betId, setBetId] = useState("");
+  const [params] = useSearchParams();
+  const [betId, setBetId] = useState(params.get("betId") ?? "");
   const [lookupId, setLookupId] = useState("");
   const [expected, setExpected] = useState<{
     hash: string;
@@ -35,12 +37,15 @@ const Verify = () => {
 
   const handleReveal = () => {
     reveal.mutate(undefined, {
-      onSuccess: (data) => {
+      onSuccess: async (data) => {
         setRevealed({
           serverSeed: data.serverSeed,
           serverSeedHash: data.serverSeedHash,
           clientSeed: data.clientSeed
         });
+        if (bet.data) {
+          await bet.refetch();
+        }
       }
     });
   };
@@ -157,7 +162,7 @@ const Verify = () => {
           )}
 
           {bet.data && (
-            <div className="flex flex-col gap-4 border border-border p-4 rounded">
+            <div className="flex flex-col gap-4 border border-border p-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <span className="text-xs text-muted-foreground">
@@ -191,11 +196,7 @@ const Verify = () => {
               <hr className="border-border" />
               <div className="flex flex-col gap-3">
                 <DetailRow label="Bet ID">{bet.data.id}</DetailRow>
-                <DetailRow label="Nonce">
-                  <code className="text-sm bg-muted px-3 py-2 rounded select-all font-mono">
-                    {bet.data.nonce}
-                  </code>
-                </DetailRow>
+                <DetailRow label="Nonce">{String(bet.data.nonce)}</DetailRow>
                 <DetailRow label="Server Seed Hash">
                   {bet.data.serverSeedHash}
                 </DetailRow>
@@ -203,7 +204,7 @@ const Verify = () => {
                 <DetailRow label="Server Seed">
                   {bet.data.serverSeed ?? (
                     <span className="text-sm text-red-500">
-                      Not revealed yet — reveal your seed above
+                      Not revealed yet - reveal your seed above
                     </span>
                   )}
                 </DetailRow>
@@ -215,7 +216,6 @@ const Verify = () => {
                   <p className="text-sm font-semibold">Verification</p>
                   {!expected && (
                     <Button
-                      size="sm"
                       onClick={() => void computeExpected()}
                       disabled={verifying}
                     >
