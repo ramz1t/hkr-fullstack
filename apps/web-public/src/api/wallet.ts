@@ -30,9 +30,8 @@ export const useWalletBalance = () => {
   return useQuery({
     queryKey: ["wallet/balance"],
     queryFn: async () => {
-      const res = await axios.get<ApiResponse<{ balance: number }>>(
-        "/wallet/me/balance"
-      );
+      const res =
+        await axios.get<ApiResponse<{ balance: number }>>("/wallet/me/balance");
       return res.data;
     }
   });

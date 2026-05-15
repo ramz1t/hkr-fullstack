@@ -1,4 +1,2 @@
-import Login from "./Auth/Login";
-import Dashboard from "./Dashboard";
-
-export { Login, Dashboard };
+export { default as Login } from "./Auth/Login";
+export { default as Users } from "./Users";
