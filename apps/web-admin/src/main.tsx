@@ -22,7 +22,7 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter basename="/">
+    <BrowserRouter basename={import.meta.env.VITE_BASE_URL ?? "/"}>
       <AuthProvider apiBaseUrl={import.meta.env.VITE_API_BASE_URL ?? ""}>
         <QueryClientProvider client={queryClient}>
           <HelmetProvider>

@@ -13,7 +13,7 @@ init:
 	@echo "Waiting for database to be ready..."
 	sleep 10
 	@echo "Running database migrations..."
-	docker run --rm --network hkr-fullstack_default -v "$(CURDIR):/app" -w /app -e DATABASE_URL="postgres://postgres:postgres@postgres:5432/hkr-fullstack?sslmode=disable" oven/bun:1 sh -c "cd packages/database && bunx prisma db push --accept-data-loss && cd ../../ && bun prisma:generate && bun prisma:seed"
+	docker run --rm --network hkr-fullstack_default -v "$(CURDIR):/app" -w /app -e DATABASE_URL="postgres://postgres:postgres@postgres:5432/hkr-fullstack?sslmode=disable" oven/bun:1 sh -c "bun install && bun prisma:push && bun prisma:generate && bun prisma:seed"
 	@echo "Building API..."
 	$(MAKE) build-api
 	@echo "Building web-public..."

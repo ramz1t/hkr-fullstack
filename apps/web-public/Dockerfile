@@ -23,8 +23,8 @@ COPY apps/web-public ./apps/web-public
 RUN bun install
 
 # Build the app
-WORKDIR /app/apps/web-public
-RUN bun run build
+WORKDIR /app
+RUN bun run build --filter=web-public
 
 # Runner stage
 FROM nginx:alpine AS runner

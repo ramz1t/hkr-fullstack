@@ -19,8 +19,8 @@ ENV DATABASE_URL=${DATABASE_URL}
 RUN bun prisma:generate
 
 # Build the API app
-WORKDIR /app/apps/api
-RUN bun run build
+WORKDIR /app
+RUN bun run build --filter=api
 
 # Runner stage
 FROM oven/bun:1-slim AS runner

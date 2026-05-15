@@ -25,8 +25,8 @@ COPY apps/web-admin ./apps/web-admin
 RUN bun install
 
 # Build the app
-WORKDIR /app/apps/web-admin
-RUN bun run build
+WORKDIR /app
+RUN bun run build --filter=web-admin
 
 # Runner stage
 FROM nginx:alpine AS runner
