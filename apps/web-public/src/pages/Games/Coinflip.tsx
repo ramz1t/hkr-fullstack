@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CoinSide, type CoinflipBetDto } from "@repo/types";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -36,22 +36,39 @@ const Coinflip = () => {
   const [side, setSide] = useState<CoinSide>(CoinSide.HEADS);
   const [wager, setWager] = useState("");
   const [result, setResult] = useState<CoinflipBetDto | null>(null);
+  const [flying, setFlying] = useState(false);
+  const [showResult, setShowResult] = useState(false);
   const { data: balanceData } = useWalletBalance();
   const bet = useCoinflipBet();
   const bets = useBets("coinflip");
 
   const balance = balanceData?.data?.balance ?? 0;
 
+  useEffect(() => {
+    if (result) {
+      const timer = setTimeout(() => {
+        setShowResult(true);
+        setFlying(false);
+        void bets.refetch();
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [result]);
+
   const handleFlip = () => {
     const amount = parseInt(wager, 10);
     if (isNaN(amount) || amount <= 0) return;
     setResult(null);
+    setShowResult(false);
+    setFlying(true);
     bet.mutate(
       { wager: amount, side },
       {
         onSuccess: (data) => {
           setResult(data);
-          void bets.refetch();
+        },
+        onError: () => {
+          setFlying(false);
         }
       }
     );
@@ -63,12 +80,41 @@ const Coinflip = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      <style>
+        {`
+          @keyframes coin-flip {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(720deg); }
+          }
+          .coin-flipping {
+            animation: coin-flip 0.8s ease-in-out infinite;
+          }
+          @keyframes coin-reveal {
+            0% { transform: rotateY(720deg); }
+            100% { transform: rotateY(var(--land-rotation)); }
+          }
+          .coin-revealing {
+            animation: coin-reveal 0.6s ease-out forwards;
+          }
+          .coin-perspective {
+            perspective: 600px;
+          }
+          .coin-3d {
+            transform-style: preserve-3d;
+          }
+          .coin-face {
+            backface-visibility: hidden;
+          }
+          .coin-back {
+            transform: rotateY(180deg);
+          }
+        `}
+      </style>
+
       <Card>
         <CardHeader>
           <CardTitle>Flip a Coin</CardTitle>
-          <CardDescription>
-            Choose a side and place your bet
-          </CardDescription>
+          <CardDescription>Choose a side and place your bet</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex gap-2">
@@ -107,6 +153,7 @@ const Coinflip = () => {
             onClick={handleFlip}
             disabled={
               bet.isPending ||
+              flying ||
               !wager ||
               parseInt(wager, 10) <= 0 ||
               parseInt(wager, 10) > balance
@@ -122,26 +169,77 @@ const Coinflip = () => {
         </CardContent>
       </Card>
 
-      {bet.isPending && (
-        <div className="flex items-center justify-center py-8">
-          <div className="size-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
-      )}
-
-      {result && (
+      {(flying || showResult) && (
         <Card>
           <CardHeader>
             <CardTitle
               className={cn(
-                "text-xl",
-                won ? "text-green-600" : "text-red-500"
+                "text-xl text-center",
+                showResult && won
+                  ? "text-green-600"
+                  : showResult && !won
+                    ? "text-red-500"
+                    : "text-muted-foreground"
               )}
             >
-              {won ? "You Won!" : "You Lost"}
+              {!showResult ? "Flipping..." : won ? "You Won!" : "You Lost"}
             </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-6 py-6">
+            <div className="coin-perspective">
+              <div
+                className={cn(
+                  "coin-3d relative size-28",
+                  flying && "coin-flipping",
+                  showResult && "coin-revealing"
+                )}
+                style={
+                  showResult && result
+                    ? ({
+                        "--land-rotation":
+                          result.coinFlip.landedSide === CoinSide.HEADS
+                            ? "0deg"
+                            : "180deg"
+                      } as React.CSSProperties)
+                    : undefined
+                }
+              >
+                <div className="coin-face absolute inset-0 rounded-full bg-yellow-400 border-4 border-yellow-500 flex items-center justify-center">
+                  <span className="text-lg font-extrabold text-yellow-800">
+                    H
+                  </span>
+                </div>
+                <div className="coin-face coin-back absolute inset-0 rounded-full bg-yellow-500 border-4 border-yellow-600 flex items-center justify-center">
+                  <span className="text-lg font-extrabold text-yellow-900">
+                    T
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {showResult && result && (
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-2xl font-extrabold">
+                  {result.coinFlip.landedSide}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {result.coinFlip.chosenSide === result.coinFlip.landedSide
+                    ? `You won ${result.payout.toLocaleString()}`
+                    : `You lost ${result.wager.toLocaleString()}`}
+                </span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {showResult && result && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Bet Details</CardTitle>
             <CardDescription>Bet result</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4">
+          <CardContent className="flex flex-col gap-3">
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-muted-foreground">Chosen</span>
@@ -196,8 +294,7 @@ const Coinflip = () => {
           ) : bets.data && bets.data.length > 0 ? (
             bets.data.map((betItem) => {
               const betWon =
-                betItem.coinFlip.chosenSide ===
-                betItem.coinFlip.landedSide;
+                betItem.coinFlip.chosenSide === betItem.coinFlip.landedSide;
               return (
                 <div
                   key={betItem.id}
