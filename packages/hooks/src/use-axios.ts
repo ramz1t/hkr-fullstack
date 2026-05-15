@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosResponse, type AxiosInstance } from "axios";
+import axios, { type AxiosError, type AxiosResponse, type AxiosInstance } from "axios";
 import { useMemo, useRef } from "react";
 import { useAuth } from "./use-auth.js";
 import { type ApiResponse, type Tokens } from "@repo/types";
@@ -41,7 +41,7 @@ export const useAxios = (): AxiosInstance => {
           if (!refreshPromise) {
             refreshPromise = axios
               .post<ApiResponse<Tokens>>(
-                `${BASE_URL}/api/auth/refresh`,
+                `${BASE_URL}/auth/refresh`,
                 { refreshToken },
                 { headers: { "Content-Type": "application/json" } }
               )

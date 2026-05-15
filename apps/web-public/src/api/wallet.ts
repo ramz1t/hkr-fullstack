@@ -8,7 +8,7 @@ export const useWalletTransactions = () => {
     queryKey: ["wallet/transactions"],
     queryFn: async ({ pageParam }) => {
       const res = await axios.get<ApiResponse<TransactionDto>>(
-        "/api/wallet/me/transactions",
+        "/wallet/me/transactions",
         {
           params: { page: pageParam }
         }
@@ -31,7 +31,7 @@ export const useWalletBalance = () => {
     queryKey: ["wallet/balance"],
     queryFn: async () => {
       const res = await axios.get<ApiResponse<{ balance: number }>>(
-        "/api/wallet/me/balance"
+        "/wallet/me/balance"
       );
       return res.data;
     }

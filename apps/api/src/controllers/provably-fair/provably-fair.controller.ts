@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from "@nestjs/common";
+import { Controller, Get, Post, Body, UseGuards } from "@nestjs/common";
 import { ApiBody } from "@nestjs/swagger";
 import { ProvablyFairService } from "./provably-fair.service";
 import { JwtAccessTokenGuard } from "../../common/guards";
@@ -10,6 +10,11 @@ import { SeedRequestDto } from "./dto";
 @UseGuards(JwtAccessTokenGuard)
 export class ProvablyFairController {
   constructor(private readonly provablyFairService: ProvablyFairService) {}
+
+  @Get()
+  async getCurrent(@CurrentUser() user: JwtPayload) {
+    return this.provablyFairService.getCurrent(user.sub);
+  }
 
   @Post("seed")
   @ApiBody({ type: SeedRequestDto })
