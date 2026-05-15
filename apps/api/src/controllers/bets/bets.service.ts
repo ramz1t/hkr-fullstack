@@ -6,7 +6,12 @@ import {
 } from "@nestjs/common";
 import { DatabaseService } from "../../common/database/database.service";
 import { WalletsService } from "../wallets/wallets.service";
-import { TransactionType, CoinSide, type CoinflipBetDto } from "@repo/types";
+import {
+  TransactionType,
+  CoinSide,
+  type CoinflipBetDto,
+  type PaginatedResult
+} from "@repo/types";
 import crypto from "crypto";
 
 @Injectable()
@@ -139,6 +144,70 @@ export class BetsService {
       coinFlip: {
         chosenSide: bet.coinFlip.chosenSide as CoinSide,
         landedSide: bet.coinFlip.landedSide as CoinSide
+      }
+    };
+  }
+
+  async getBets(
+    userId: string,
+    page: number,
+    pageSize: number,
+    gameSlug?: string
+  ): Promise<PaginatedResult<CoinflipBetDto>> {
+    const game = gameSlug
+      ? await this.db.client.game.findUnique({ where: { slug: gameSlug } })
+      : null;
+
+    const where: Record<string, unknown> = { userId };
+    if (game) {
+      where.gameId = game.id;
+    }
+
+    const [betEntries, total] = await Promise.all([
+      this.db.client.bet.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: { coinFlip: true }
+      }),
+      this.db.client.bet.count({ where })
+    ]);
+
+    const provablyFair = await this.db.client.provablyFair.findUnique({
+      where: { userId }
+    });
+
+    const data = betEntries.map((bet) => {
+      const seedRevealed =
+        provablyFair !== null && bet.serverSeedUsed !== provablyFair.serverSeed;
+
+      return {
+        id: bet.id,
+        gameId: bet.gameId,
+        wager: bet.wager,
+        payout: bet.payout,
+        nonce: bet.nonce,
+        serverSeed: seedRevealed ? bet.serverSeedUsed : null,
+        serverSeedHash: bet.serverSeedHashUsed,
+        clientSeed: bet.clientSeedUsed,
+        coinFlip: {
+          chosenSide: bet.coinFlip!.chosenSide as CoinSide,
+          landedSide: bet.coinFlip!.landedSide as CoinSide
+        }
+      } as CoinflipBetDto;
+    });
+
+    const totalPages = Math.ceil(total / pageSize);
+
+    return {
+      data,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages,
+        hasMore: page < totalPages
       }
     };
   }

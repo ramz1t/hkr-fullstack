@@ -71,8 +71,11 @@ async function main() {
   console.log("seeded.");
 }
 
-main().catch(async (error) => {
-  console.error(error);
-  await prisma.$disconnect();
-  process.exit(1);
-});
+main()
+  .catch(async (error) => {
+    console.error(error);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
