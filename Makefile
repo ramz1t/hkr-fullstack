@@ -5,7 +5,7 @@ build-web-public:
 	docker build --build-arg VITE_API_BASE_URL="/api" --build-arg VITE_JWT_ACCESS_TTL="900" --build-arg VITE_APP_NAME="casinoapp" --build-arg VITE_BASE_URL="/" -f apps/web-public/Dockerfile -t casinoapp-web-public .
 
 build-web-admin:
-	docker build --build-arg VITE_API_BASE_URL="/api" --build-arg VITE_JWT_ACCESS_TTL="900" --build-arg VITE_APP_NAME="casinoadmin" --build-arg VITE_BASE_URL="/" -f apps/web-admin/Dockerfile -t casinoapp-web-admin .
+	docker build --build-arg VITE_API_BASE_URL="/api" --build-arg VITE_JWT_ACCESS_TTL="900" --build-arg VITE_APP_NAME="casinoadmin" --build-arg VITE_BASE_URL="/admin/" -f apps/web-admin/Dockerfile -t casinoapp-web-admin .
 
 init:
 	@echo "Initializing database..."

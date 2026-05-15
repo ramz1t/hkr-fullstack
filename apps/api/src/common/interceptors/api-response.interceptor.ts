@@ -24,7 +24,7 @@ export class ApiResponseInterceptor<T>
     return next.handle().pipe(
       map((data): ApiResponse<T> => {
         const apiResponse: ApiResponse<T> = {
-          data: data as T,
+          data: data,
           meta: {
             requestId: request.headers["x-request-id"]?.toString(),
             timestamp: new Date().toISOString(),
