@@ -1,8 +1,17 @@
 import type { TransactionDto } from "@repo/types";
 import { TYPE_COLOR, TYPE_LABEL, fmt, isDebit } from "./utils";
-import { useCallback, useState } from "react";
 import { useWalletTransactions } from "../../api";
 import { LoadMoreTrigger } from "@repo/ui/load-more-trigger";
+import {
+  Table,
+  TableHeader,
+  TableHeaderRow,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell
+} from "@repo/ui/table";
+import { UUID } from "@repo/ui/uuid";
 
 const TransactionsTable = () => {
   const {
@@ -31,21 +40,21 @@ const TransactionsTable = () => {
         </p>
       ) : (
         <div>
-          <table className="w-full text-sm ring-1 ring-foreground/10">
-            <thead>
-              <tr className="border-b border-border bg-muted/50 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                <th className="px-4 py-3">ID</th>
-                <th className="px-4 py-3">Type</th>
-                <th className="px-4 py-3 text-right">Amount</th>
-                <th className="px-4 py-3 text-right">Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border bg-card">
+          <Table>
+            <TableHeader>
+              <TableHeaderRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="text-right">Date</TableHead>
+              </TableHeaderRow>
+            </TableHeader>
+            <TableBody>
               {transactions?.map((t) => (
                 <TransactionsTableRow t={t} key={t.id} />
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
           <LoadMoreTrigger
             isFetching={isFetchingNextPage}
             fetch={fetchNextPage}
@@ -59,41 +68,26 @@ const TransactionsTable = () => {
 };
 
 const TransactionsTableRow = ({ t }: { t: TransactionDto }) => {
-  const copyTransactionId = useCallback(async (id: string) => {
-    await navigator.clipboard.writeText(id);
-    setShowConfirm(true);
-    setTimeout(() => setShowConfirm(false), 2000);
-  }, []);
-  const [showConfirm, setShowConfirm] = useState<boolean>(false);
   return (
-    <tr
-      key={t.id}
-      className="hover:bg-muted/30"
-      title={!showConfirm ? "Copy transaction ID" : ""}
-    >
-      <td className="px-4 py-3 text-muted-foreground">
-        <span
-          className={`${!showConfirm && "hover:cursor-pointer"} w-fit`}
-          onClick={() => !showConfirm && copyTransactionId(t.id)}
-        >
-          {showConfirm ? "Copied!" : t.id}
-        </span>
-      </td>
-      <td className={`px-4 py-3 font-medium ${TYPE_COLOR[t.type]}`}>
+    <TableRow key={t.id}>
+      <TableCell>
+        <UUID value={t.id} />
+      </TableCell>
+      <TableCell className={`font-medium ${TYPE_COLOR[t.type]}`}>
         {TYPE_LABEL[t.type]}
-      </td>
-      <td
-        className={`px-4 py-3 text-right tabular-nums font-medium ${TYPE_COLOR[t.type]}`}
+      </TableCell>
+      <TableCell
+        className={`text-right tabular-nums font-medium ${TYPE_COLOR[t.type]}`}
       >
         {isDebit(t.type) ? `-${fmt(t.amount)}` : `+${fmt(t.amount)}`}
-      </td>
-      <td className="px-4 py-3 text-right whitespace-nowrap">
+      </TableCell>
+      <TableCell className="text-right whitespace-nowrap">
         {new Date(t.createdAt).toLocaleString(undefined, {
           dateStyle: "medium",
           timeStyle: "short"
         })}
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 };
 
