@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { useAxios } from "@repo/hooks/use-axios";
 import {
   type CoinflipBetDto,
@@ -50,6 +50,26 @@ export const useRevealSeeds = () => {
       );
       return res.data.data!;
     }
+  });
+};
+
+export const useBets = (gameSlug?: string) => {
+  const axios = useAxios();
+  return useInfiniteQuery({
+    queryKey: ["bets", gameSlug],
+    queryFn: async ({ pageParam }) => {
+      const res = await axios.get<ApiResponse<CoinflipBetDto>>("/bets", {
+        params: { page: pageParam, pageSize: 10, game: gameSlug }
+      });
+      return res.data;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      return lastPage.meta.pagination!.hasMore
+        ? lastPage.meta.pagination!.page + 1
+        : null;
+    },
+    select: (data) => [...data.pages.flatMap((page) => page.data!)]
   });
 };
 

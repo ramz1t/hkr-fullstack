@@ -171,65 +171,59 @@ const Verify = () => {
           )}
 
           {bet.data && (
-            <div className="flex flex-col gap-2 text-xs border border-border p-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Bet ID</span>
-                <span className="font-mono text-[10px] break-all max-w-[300px] text-right">
-                  {bet.data.id}
-                </span>
+            <div className="flex flex-col gap-3 text-sm border border-border p-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs text-muted-foreground">Chosen Side</span>
+                  <span className="font-medium">{bet.data.coinFlip.chosenSide}</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs text-muted-foreground">Landed Side</span>
+                  <span className="font-medium">{bet.data.coinFlip.landedSide}</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs text-muted-foreground">Wager</span>
+                  <span className="font-medium">{bet.data.wager.toLocaleString()}</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs text-muted-foreground">Payout</span>
+                  <span className="font-medium">{bet.data.payout.toLocaleString()}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Nonce</span>
-                <span className="font-mono">{bet.data.nonce}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Wager</span>
-                <span className="font-medium">
-                  {bet.data.wager.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Payout</span>
-                <span className="font-medium">
-                  {bet.data.payout.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Chosen Side</span>
-                <span className="font-medium">
-                  {bet.data.coinFlip.chosenSide}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Landed Side</span>
-                <span className="font-medium">
-                  {bet.data.coinFlip.landedSide}
-                </span>
-              </div>
-              <hr className="border-border my-1" />
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Server Seed</span>
-                <span className="font-mono text-[10px] break-all max-w-[300px] text-right">
-                  {bet.data.serverSeed ?? (
-                    <span className="text-red-500">
-                      Not revealed yet
-                    </span>
+              <hr className="border-border" />
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs text-muted-foreground">Bet ID</span>
+                  <code className="text-xs break-all bg-muted p-1 rounded select-all">
+                    {bet.data.id}
+                  </code>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs text-muted-foreground">Nonce</span>
+                  <code className="text-xs bg-muted p-1 rounded select-all">{bet.data.nonce}</code>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs text-muted-foreground">Server Seed Hash</span>
+                  <code className="text-xs break-all bg-muted p-1 rounded select-all">
+                    {bet.data.serverSeedHash}
+                  </code>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs text-muted-foreground">Client Seed</span>
+                  <code className="text-xs break-all bg-muted p-1 rounded select-all">
+                    {bet.data.clientSeed}
+                  </code>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs text-muted-foreground">Server Seed</span>
+                  {bet.data.serverSeed ? (
+                    <code className="text-xs break-all bg-muted p-1 rounded select-all">
+                      {bet.data.serverSeed}
+                    </code>
+                  ) : (
+                    <span className="text-xs text-red-500">Not revealed yet</span>
                   )}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">
-                  Server Seed Hash
-                </span>
-                <span className="font-mono text-[10px] break-all max-w-[300px] text-right">
-                  {bet.data.serverSeedHash}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Client Seed</span>
-                <span className="font-mono text-[10px] break-all max-w-[300px] text-right">
-                  {bet.data.clientSeed}
-                </span>
+                </div>
               </div>
 
               {bet.data.serverSeed && (

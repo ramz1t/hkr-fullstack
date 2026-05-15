@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle
 } from "@repo/ui/card";
-import { useCoinflipBet, useWalletBalance } from "../../api";
+import { useCoinflipBet, useWalletBalance, useBets } from "../../api";
 import { cn } from "@repo/ui/utils";
 
 const Coinflip = () => {
@@ -19,6 +19,7 @@ const Coinflip = () => {
   const [result, setResult] = useState<CoinflipBetDto | null>(null);
   const { data: balanceData } = useWalletBalance();
   const bet = useCoinflipBet();
+  const bets = useBets("coinflip");
 
   const balance = balanceData?.data?.balance ?? 0;
 
@@ -28,7 +29,12 @@ const Coinflip = () => {
     setResult(null);
     bet.mutate(
       { wager: amount, side },
-      { onSuccess: (data) => setResult(data) }
+      {
+        onSuccess: (data) => {
+          setResult(data);
+          void bets.refetch();
+        }
+      }
     );
   };
 
@@ -108,6 +114,7 @@ const Coinflip = () => {
           <CardHeader>
             <CardTitle
               className={cn(
+                "text-lg",
                 won ? "text-green-600" : "text-red-500"
               )}
             >
@@ -115,53 +122,116 @@ const Coinflip = () => {
             </CardTitle>
             <CardDescription>Bet result</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-2 text-xs">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Chosen</span>
-              <span className="font-medium">{result.coinFlip.chosenSide}</span>
+          <CardContent className="flex flex-col gap-3 text-sm">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-muted-foreground">Chosen</span>
+                <span className="font-medium">{result.coinFlip.chosenSide}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-muted-foreground">Landed</span>
+                <span className="font-medium">{result.coinFlip.landedSide}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-muted-foreground">Wager</span>
+                <span className="font-medium">
+                  {result.wager.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-muted-foreground">Payout</span>
+                <span className="font-medium">
+                  {result.payout.toLocaleString()}
+                </span>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Landed</span>
-              <span className="font-medium">{result.coinFlip.landedSide}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Wager</span>
-              <span className="font-medium">
-                {result.wager.toLocaleString()}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Payout</span>
-              <span className="font-medium">
-                {result.payout.toLocaleString()}
-              </span>
-            </div>
-            <hr className="border-border my-1" />
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Bet ID</span>
-              <span className="font-mono text-[10px] truncate max-w-[200px]">
-                {result.id}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Nonce</span>
-              <span className="font-mono">{result.nonce}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Server Seed Hash</span>
-              <span className="font-mono text-[10px] truncate max-w-[200px]">
-                {result.serverSeedHash}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Client Seed</span>
-              <span className="font-mono text-[10px] truncate max-w-[200px]">
-                {result.clientSeed}
-              </span>
+            <hr className="border-border" />
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground">Bet ID</span>
+                <code className="text-xs break-all bg-muted p-1 rounded select-all">
+                  {result.id}
+                </code>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground">Nonce</span>
+                <code className="text-xs bg-muted p-1 rounded select-all">
+                  {result.nonce}
+                </code>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground">
+                  Server Seed Hash
+                </span>
+                <code className="text-xs break-all bg-muted p-1 rounded select-all">
+                  {result.serverSeedHash}
+                </code>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground">
+                  Client Seed
+                </span>
+                <code className="text-xs break-all bg-muted p-1 rounded select-all">
+                  {result.clientSeed}
+                </code>
+              </div>
             </div>
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Bet History</CardTitle>
+          <CardDescription>Your recent coinflip bets</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          {bets.isLoading ? (
+            <div className="h-10 animate-pulse rounded bg-muted" />
+          ) : bets.data && bets.data.length > 0 ? (
+            bets.data.map((betItem) => {
+              const betWon = betItem.coinFlip.chosenSide === betItem.coinFlip.landedSide;
+              return (
+                <div
+                  key={betItem.id}
+                  className="flex items-center justify-between gap-4 border-b border-border pb-2 last:border-0 last:pb-0"
+                >
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className={betWon ? "text-green-600" : "text-red-500"}>
+                        {betItem.coinFlip.landedSide}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {betWon ? "+" : ""}{betItem.payout.toLocaleString()}
+                      </span>
+                    </div>
+                    <code className="text-[10px] text-muted-foreground truncate">
+                      {betItem.id}
+                    </code>
+                  </div>
+                  <div className="text-xs text-muted-foreground shrink-0">
+                    {betItem.wager.toLocaleString()}
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-xs text-muted-foreground">No bets yet</p>
+          )}
+          {bets.isFetchingNextPage && (
+            <div className="h-6 animate-pulse rounded bg-muted" />
+          )}
+          {bets.hasNextPage && !bets.isFetchingNextPage && (
+            <Button
+              variant="outline"
+              size="xs"
+              onClick={() => void bets.fetchNextPage()}
+            >
+              Load more
+            </Button>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
