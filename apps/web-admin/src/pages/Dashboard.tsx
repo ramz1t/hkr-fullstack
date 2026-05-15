@@ -32,11 +32,10 @@ interface AdminUserView {
 }
 
 const Dashboard = () => {
-  const {} = useAuth();
+  const { } = useAuth();
   const axios = useAxios();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
-  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
 
   // Fetch users query
   const {
@@ -48,7 +47,7 @@ const Dashboard = () => {
   } = useQuery<AdminUserView[]>({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const res = await axios.get(`${baseUrl}/users`);
+      const res = await axios.get("/users");
       return res.data?.data || [];
     },
   });
@@ -56,7 +55,7 @@ const Dashboard = () => {
   // Ban user mutation
   const banMutation = useMutation({
     mutationFn: async (userId: string) => {
-      await axios.patch(`${baseUrl}/users/${userId}/ban`);
+      await axios.patch(`/users/${userId}/ban`);
     },
     onSuccess: () => {
       toast.success("User access revoked successfully");
@@ -70,7 +69,7 @@ const Dashboard = () => {
   // Unban user mutation
   const unbanMutation = useMutation({
     mutationFn: async (userId: string) => {
-      await axios.patch(`${baseUrl}/users/${userId}/unban`);
+      await axios.patch(`/users/${userId}/unban`);
     },
     onSuccess: () => {
       toast.success("User access restored successfully");
@@ -253,9 +252,8 @@ const Dashboard = () => {
 
                       {/* Role Column */}
                       <td className="py-3.5 px-6">
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase ${
-                          u.role === "ADMIN" ? "bg-primary/10 text-primary border border-primary/20" : "bg-muted text-muted-foreground"
-                        }`}>
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase ${u.role === "ADMIN" ? "bg-primary/10 text-primary border border-primary/20" : "bg-muted text-muted-foreground"
+                          }`}>
                           {u.role}
                         </span>
                       </td>

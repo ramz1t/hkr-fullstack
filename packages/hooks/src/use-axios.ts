@@ -41,7 +41,7 @@ export const useAxios = (): AxiosInstance => {
           if (!refreshPromise) {
             refreshPromise = axios
               .post<ApiResponse<Tokens>>(
-                `${BASE_URL}/api/auth/refresh`,
+                `${BASE_URL}/auth/refresh`,
                 { refreshToken },
                 { headers: { "Content-Type": "application/json" } }
               )
