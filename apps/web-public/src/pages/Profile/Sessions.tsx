@@ -60,7 +60,7 @@ const Sessions = () => {
   return (
     <ul className="p-5 gap-5 grid md:grid-cols-2">
       <Helmet>
-        <title>Sessions | C</title>
+        <title>Sessions | CasinoApp</title>
       </Helmet>
       {isLoading ? (
         Array.from({ length: 4 }).map((_, i) => (
