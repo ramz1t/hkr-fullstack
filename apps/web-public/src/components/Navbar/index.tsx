@@ -7,20 +7,14 @@ import {
   DropdownMenuTrigger
 } from "@repo/ui/dropdown-menu";
 import { cn } from "@repo/ui/utils";
-import {
-  ChevronDown,
-  Dice6Icon,
-  HomeIcon,
-  LogOut,
-  User,
-  WalletIcon
-} from "lucide-react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { ChevronDown, Dice6Icon, HomeIcon, LogOut, User } from "lucide-react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import WalletLink from "./WalletLink";
 
 const NAV_TABS = [
   { label: <HomeIcon />, to: "/" },
   { label: <Dice6Icon />, to: "/games" },
-  { label: <WalletIcon />, to: "/wallet" }
+  { label: <WalletLink />, to: "/wallet" }
 ];
 
 const HIDDEN_PATHS = ["/login"];
@@ -28,12 +22,13 @@ const HIDDEN_PATHS = ["/login"];
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   if (HIDDEN_PATHS.includes(location.pathname)) return null;
 
   return (
-    <nav className="sticky top-0 inset-x-0 z-50 h-14 border-b border-border bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-full max-w-7xl items-center px-4 gap-4">
+    <nav className="sticky top-0 inset-x-0 z-50 min-h-14 h-14 border-b border-border bg-background/80 backdrop-blur-sm">
+      <div className="mx-auto flex h-full container items-center px-4 gap-4">
         <Link
           to="/"
           className="shrink-0 text-xl font-extrabold tracking-tight font-heading text-primary"
@@ -67,21 +62,23 @@ const Navbar = () => {
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 max-w-48"
-                >
-                  <User className="size-3.5 shrink-0" />
-                  <span className="truncate text-xs">{user?.email}</span>
+                <Button variant="outline" className="gap-1.5 max-w-48">
+                  <span className="truncate">{user?.email}</span>
                   <ChevronDown className="size-3 shrink-0 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={() => void navigate("/profile")}>
+                  <User />
+                  Profile
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   variant="destructive"
-                  onSelect={() => void logout()}
+                  onSelect={() => {
+                    logout();
+                    navigate("/login");
+                  }}
                 >
                   <LogOut />
                   Sign out

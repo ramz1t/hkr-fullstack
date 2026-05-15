@@ -13,6 +13,7 @@ import type {
   Tokens
 } from "@repo/types";
 import useLocalStorage from "./use-local-storage.js";
+import { decodeJwt, isTokenExpired, parseError } from "./utils.js";
 
 export type { JwtPayload as User };
 
@@ -29,14 +30,6 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const TOKENS_KEY = "auth_tokens";
-
-const decodeJwt = (token: string): JwtPayload => {
-  const base64 = token.split(".")[1]?.replace(/-/g, "+").replace(/_/g, "/");
-  return JSON.parse(atob(base64 || "")) as JwtPayload;
-};
-
-const parseError = (body: ApiResponse<unknown>, fallback: string): string =>
-  body.error?.message ?? fallback;
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -95,14 +88,29 @@ export function AuthProvider({ children, apiBaseUrl }: AuthProviderProps) {
   );
 
   const logout = useCallback(async () => {
-    try {
-      if (tokens?.refreshToken) {
-        await fetch(`${apiBaseUrl}/auth/logout`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refreshToken: tokens.refreshToken })
-        });
+    let accessToken = tokens?.accessToken;
+
+    // we need this because token can be expired at the time of logout
+    if (accessToken && isTokenExpired(accessToken) && tokens?.refreshToken) {
+      const res = await fetch(`${apiBaseUrl}/api/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken: tokens.refreshToken })
+      });
+      const body: ApiResponse<Tokens> = await res.json();
+      if (res.ok && body.data) {
+        accessToken = body.data.accessToken;
       }
+    }
+
+    try {
+      await fetch(`${apiBaseUrl}/api/auth/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
     } finally {
       persistTokens(null);
     }

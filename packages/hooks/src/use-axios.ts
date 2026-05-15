@@ -1,21 +1,14 @@
-import axios, { type AxiosInstance } from "axios";
+import axios, { AxiosError, AxiosResponse, type AxiosInstance } from "axios";
 import { useMemo, useRef } from "react";
 import { useAuth } from "./use-auth.js";
-import type { ApiResponse, Tokens } from "@repo/types";
+import { type ApiResponse, type Tokens } from "@repo/types";
+import { isTokenExpired } from "./utils.js";
 
-const TOKEN_EXPIRY_BUFFER_SECONDS = Math.floor(
-  Number(import.meta.env.VITE_JWT_ACCESS_TTL ?? 900) / 10
-);
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
-const isTokenExpired = (token: string): boolean => {
-  try {
-    const base64 = token.split(".")[1]?.replace(/-/g, "+").replace(/_/g, "/");
-    const { exp } = JSON.parse(atob(base64 || "")) as { exp: number };
-    return Date.now() / 1000 >= exp - TOKEN_EXPIRY_BUFFER_SECONDS;
-  } catch {
-    return true;
-  }
-};
+// Module-level lock so concurrent requests share a single refresh attempt.
+// This is needed to prevent race condition when multiple /refresh are requested
+let refreshPromise: Promise<Tokens> | null = null;
 
 export const useAxios = (): AxiosInstance => {
   const { tokens, updateTokens, logout } = useAuth();
@@ -28,12 +21,13 @@ export const useAxios = (): AxiosInstance => {
 
   const instance = useMemo(() => {
     const inst = axios.create({
+      baseURL: BASE_URL,
       headers: { "Content-Type": "application/json" }
     });
 
     inst.interceptors.request.use(async (config) => {
       let accessToken = tokensRef.current?.accessToken;
-      const refreshToken = tokensRef.current?.refreshToken;
+      let refreshToken = tokensRef.current?.refreshToken;
 
       if (!accessToken) return config;
 
@@ -44,13 +38,21 @@ export const useAxios = (): AxiosInstance => {
         }
 
         try {
-          const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
-          const res = await axios.post<ApiResponse<Tokens>>(
-            `${baseUrl}/auth/refresh`,
-            { refreshToken },
-            { headers: { "Content-Type": "application/json" } }
-          );
-          const newTokens = res.data.data!;
+          if (!refreshPromise) {
+            refreshPromise = axios
+              .post<ApiResponse<Tokens>>(
+                `${BASE_URL}/api/auth/refresh`,
+                { refreshToken },
+                { headers: { "Content-Type": "application/json" } }
+              )
+              .then((res) => res.data.data!)
+              .finally(() => {
+                refreshPromise = null;
+              });
+          }
+
+          const newTokens = await refreshPromise;
+
           updateTokensRef.current(newTokens);
           tokensRef.current = newTokens;
           accessToken = newTokens.accessToken;
@@ -63,6 +65,20 @@ export const useAxios = (): AxiosInstance => {
       config.headers.Authorization = `Bearer ${accessToken}`;
       return config;
     });
+
+    inst.interceptors.response.use(
+      (res: AxiosResponse<ApiResponse<unknown>>) => {
+        // add handling here if needed
+        return res;
+      },
+      (err: AxiosError<ApiResponse<unknown>>) => {
+        const possibleMessage = err.response?.data.error?.message;
+        if (possibleMessage) {
+          console.error(possibleMessage);
+        }
+        return Promise.reject(err);
+      }
+    );
 
     return inst;
   }, []);
