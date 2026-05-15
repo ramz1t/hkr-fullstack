@@ -23,7 +23,7 @@ export class AuthService {
   ) {}
   private SALT_ROUNDS = 12;
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, userAgent?: string) {
     const user = await this.usersService.findByEmail(dto.email);
 
     if (!user) {
@@ -40,10 +40,10 @@ export class AuthService {
       throw API_ERRORS.AUTH_INVALID_CREDENTIALS;
     }
 
-    return this.generateTokens(user.id, user.email, user.role);
+    return this.generateTokens(user.id, user.email, user.role, undefined, userAgent);
   }
 
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterDto, userAgent?: string) {
     const existingUser = await this.usersService.findByEmail(dto.email);
 
     if (existingUser) {
@@ -75,7 +75,9 @@ export class AuthService {
     return await this.generateTokens(
       user.id,
       user.email,
-      user.role as UserRole
+      user.role as UserRole,
+      undefined,
+      userAgent
     );
   }
 
@@ -124,11 +126,35 @@ export class AuthService {
     });
   }
 
+  async getSessions(userId: string) {
+    return this.db.client.session.findMany({
+      where: { userId },
+      select: { id: true, userAgent: true, createdAt: true },
+      orderBy: { createdAt: "desc" }
+    });
+  }
+
+  async revokeSession(userId: string, sessionId: string) {
+    const session = await this.db.client.session.findUnique({
+      where: { id: sessionId },
+      select: { userId: true }
+    });
+
+    if (!session || session.userId !== userId) {
+      throw API_ERRORS.AUTH_INVALID_SESSION;
+    }
+
+    await this.db.client.session.delete({
+      where: { id: sessionId }
+    });
+  }
+
   async generateTokens(
     userId: string,
     email: string,
     role: UserRole,
-    previousSessionId?: string
+    previousSessionId?: string,
+    userAgent?: string
   ) {
     const accessTtl = +this.configService.getOrThrow<number>("JWT_ACCESS_TTL", {
       infer: true
@@ -159,6 +185,14 @@ export class AuthService {
       .digest("hex");
 
     if (previousSessionId) {
+      if (!userAgent) {
+        const oldSession = await this.db.client.session.findUnique({
+          where: { id: previousSessionId },
+          select: { userAgent: true }
+        });
+        userAgent = oldSession?.userAgent ?? undefined;
+      }
+
       await this.db.client.session.deleteMany({
         where: { id: previousSessionId }
       });
@@ -168,7 +202,8 @@ export class AuthService {
       data: {
         id: newSessionId,
         userId,
-        refreshTokenHash
+        refreshTokenHash,
+        userAgent
       }
     });
 
