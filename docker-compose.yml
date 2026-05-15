@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=hkr-fullstack
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    image: casinoapp-api:latest
+    environment:
+      - API_PORT=4000 
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/hkr-fullstack?sslmode=disable
+      - JWT_ACCESS_SECRET=5172202843
+      - JWT_REFRESH_SECRET=1559550797
+      - JWT_ACCESS_TTL=900
+      - JWT_REFRESH_TTL=604800
+      - ALLOWED_ORIGINS=http://localhost,http://127.0.0.1
+    depends_on:
+      - postgres
+
+  web-public:
+    image: casinoapp-web-public:latest
+    depends_on:
+      - api
+
+  web-admin:
+    image: casinoapp-web-admin:latest
+    depends_on:
+      - api
+
+  gateway:
+    image: caddy:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - web-public
+      - web-admin
+    volumes:
+      - ./packages/gateway/Caddyfile:/etc/caddy/Caddyfile
+
+volumes:
+  postgres_data:

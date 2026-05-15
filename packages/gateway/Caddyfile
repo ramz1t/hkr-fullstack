@@ -1,0 +1,21 @@
+:80 {
+    # Ensure /admin always has a trailing slash for proper path stripping
+    redir /admin /admin/
+
+    # API requests
+    handle /api* {
+        reverse_proxy api:4000
+    }
+
+    # Admin UI
+    # handle_path strips the /admin prefix before proxying to the internal nginx
+    handle_path /admin* {
+        uri strip_prefix /admin
+        reverse_proxy web-admin:3001
+    }
+
+    # Public UI (Fallback)
+    handle {
+        reverse_proxy web-public:3000
+    }
+}

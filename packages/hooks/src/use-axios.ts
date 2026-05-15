@@ -1,7 +1,7 @@
-import axios, { AxiosError, AxiosResponse, type AxiosInstance } from "axios";
+import axios, { AxiosError, type AxiosResponse, type AxiosInstance } from "axios";
 import { useMemo, useRef } from "react";
 import { useAuth } from "./use-auth.js";
-import { type ApiResponse, type Tokens } from "@repo/types";
+import type { ApiResponse, Tokens } from "@repo/types";
 import { isTokenExpired } from "./utils.js";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
