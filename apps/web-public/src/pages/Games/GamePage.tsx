@@ -42,7 +42,7 @@ const GamePage = () => {
   return (
     <section className="mx-auto w-full px-4 py-10 flex flex-col gap-8 container">
       <Helmet>
-        <title>{game.name} | CasinoApp</title>
+        <title>{game.name}</title>
       </Helmet>
       <div>
         <h1 className="text-4xl font-extrabold tracking-tight font-heading flex items-center gap-3">
