@@ -59,7 +59,7 @@ function Game<TBet extends BetDto>({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="grid grid-cols-[1fr_1fr] gap-5">
+      <div className="grid md:grid-cols-2 gap-5">
         {form}
         {ui}
       </div>
@@ -72,7 +72,7 @@ function Game<TBet extends BetDto>({
           <CardContent className="flex flex-col gap-3">
             {betDetails && betDetails.length > 0 && (
               <>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-2 gap-x-5 gap-y-4">
                   {betDetails.map(({ title, value }) => (
                     <div key={title} className="flex flex-col gap-1">
                       <span className="text-xs text-muted-foreground">
@@ -85,7 +85,7 @@ function Game<TBet extends BetDto>({
                 <hr className="border-border" />
               </>
             )}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-x-5 gap-y-4">
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-muted-foreground">Wager</span>
                 <span className="text-base font-bold tabular-nums">
@@ -100,7 +100,7 @@ function Game<TBet extends BetDto>({
               </div>
             </div>
             <hr className="border-border" />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid md:grid-cols-2 gap-y-3 gap-x-5">
               <DetailRow label="Bet ID">
                 <div className="flex gap-2">
                   <code className="text-sm break-all bg-muted px-3 py-2 select-all font-mono leading-relaxed grow">
@@ -131,7 +131,7 @@ function Game<TBet extends BetDto>({
         </Card>
       )}
 
-      <Card>
+      <Card className="pb-0">
         <CardHeader>
           <CardTitle>Bet History</CardTitle>
           <CardDescription>Your recent bets</CardDescription>
@@ -189,13 +189,11 @@ function Game<TBet extends BetDto>({
               </TableBody>
             </Table>
           )}
-          <div className="px-4 py-2">
-            <LoadMoreTrigger
-              hasNextPage={bets.hasNextPage}
-              isFetching={bets.isFetchingNextPage}
-              fetch={bets.fetchNextPage}
-            />
-          </div>
+          <LoadMoreTrigger
+            hasNextPage={bets.hasNextPage}
+            isFetching={bets.isFetchingNextPage}
+            fetch={bets.fetchNextPage}
+          />
         </CardContent>
       </Card>
     </div>

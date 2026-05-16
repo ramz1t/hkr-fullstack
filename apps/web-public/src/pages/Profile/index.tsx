@@ -1,97 +1,50 @@
-import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { Button } from "@repo/ui/button";
-import { Input } from "@repo/ui/input";
-import { Label } from "@repo/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@repo/ui/card";
-import { useSetSeed, useCurrentSeeds } from "../../api";
+import { NavLink, Route, Routes } from "react-router-dom";
+import Seeds from "./Seeds";
+import { Wheat, Cog, Laptop } from "lucide-react";
+import { cn } from "@repo/ui/utils";
+import Sessions from "./Sessions";
+
+const NAV_TABS = [
+  { label: "Seeds", icon: Wheat, to: "/profile/seeds" },
+  { label: "Sessions", icon: Laptop, to: "/profile/sessions" },
+  { label: "Settings", icon: Cog, to: "/profile/settings" }
+];
 
 const Profile = () => {
-  const { data: currentSeeds, isLoading } = useCurrentSeeds();
-  const [clientSeed, setClientSeed] = useState("");
-  const [serverSeedHash, setServerSeedHash] = useState("");
-
-  const setSeed = useSetSeed();
-
-  useEffect(() => {
-    if (currentSeeds) {
-      setClientSeed(currentSeeds.clientSeed);
-      setServerSeedHash(currentSeeds.serverSeedHash);
-    }
-  }, [currentSeeds]);
-
-  const handleSave = () => {
-    if (!clientSeed.trim()) return;
-    setSeed.mutate(clientSeed.trim(), {
-      onSuccess: (data) => {
-        setServerSeedHash(data.serverSeedHash);
-        setClientSeed(data.clientSeed);
-      }
-    });
-  };
-
   return (
-    <section className="mx-auto w-full px-4 py-10 flex flex-col gap-8 container">
+    <section className="flex mx-auto w-full px-4 container grow">
       <Helmet>
         <title>Profile | CasinoApp</title>
       </Helmet>
-      <div>
-        <h1 className="text-4xl font-extrabold tracking-tight font-heading">
-          Profile
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          Manage your account settings
-        </p>
+      <aside className="w-56 shrink-0 min-h-full border-r border-border">
+        <nav className="flex-1 flex flex-col gap-1 py-5 pr-5 ">
+          {NAV_TABS.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                cn(
+                  "px-3 h-10 text-sm font-medium transition-colors flex items-center gap-2",
+                  isActive
+                    ? "bg-primary/10 text-primary font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )
+              }
+            >
+              <Icon className="size-4 shrink-0" />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+      </aside>
+      <div className="w-full">
+        <Routes>
+          <Route path="/seeds" element={<Seeds />} />
+          <Route path="/sessions" element={<Sessions />} />
+          <Route path="*" element={"Select setting"} />
+        </Routes>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Provably Fair Seeds</CardTitle>
-          <CardDescription>
-            Your seeds determine game outcomes. Change your client seed at any
-            time.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          {isLoading ? (
-            <div className="h-24 animate-pulse rounded bg-muted" />
-          ) : (
-            <>
-              <div className="flex flex-col gap-1.5">
-                <Label>Server Seed Hash</Label>
-                <code className="text-sm break-all bg-muted px-3 py-2 rounded select-all font-mono leading-relaxed">
-                  {serverSeedHash}
-                </code>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label>Client Seed</Label>
-                <Input
-                  placeholder="Enter your client seed..."
-                  value={clientSeed}
-                  onChange={(e) => setClientSeed(e.target.value)}
-                />
-              </div>
-              <Button
-                onClick={handleSave}
-                disabled={setSeed.isPending || !clientSeed.trim()}
-              >
-                {setSeed.isPending ? "Saving..." : "Save"}
-              </Button>
-              {setSeed.isError && (
-                <p className="text-sm text-red-500">
-                  {setSeed.error?.message ?? "Failed to save"}
-                </p>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
     </section>
   );
 };

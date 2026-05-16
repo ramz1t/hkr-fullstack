@@ -62,3 +62,13 @@
     @apply min-h-full flex flex-col;
   }
 }
+
+@layer utilities {
+  .page-container {
+    @apply mx-auto w-full px-4 py-10 flex flex-col gap-10 container;
+  }
+}
+
+/* * {
+  outline: 1px solid red;
+} */

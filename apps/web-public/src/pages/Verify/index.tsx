@@ -76,7 +76,7 @@ const Verify = () => {
   };
 
   return (
-    <section className="mx-auto w-full px-4 py-10 flex flex-col gap-8 container">
+    <section className="page-container">
       <Helmet>
         <title>Verify | CasinoApp</title>
       </Helmet>
@@ -109,7 +109,7 @@ const Verify = () => {
           )}
 
           {revealed && (
-            <div className="flex flex-col gap-3 border border-border p-4 rounded">
+            <div className="grid md:grid-cols-2 gap-y-3 gap-x-5 border border-border p-4 rounded">
               <DetailRow label="Old Server Seed">
                 {revealed.serverSeed}
               </DetailRow>
@@ -117,7 +117,7 @@ const Verify = () => {
                 {revealed.serverSeedHash}
               </DetailRow>
               <DetailRow label="Client Seed">{revealed.clientSeed}</DetailRow>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground col-span-full">
                 A new server seed has been generated. Use the revealed seed
                 below to verify any past bet.
               </p>
@@ -186,7 +186,7 @@ const Verify = () => {
                 </div>
               </div>
               <hr className="border-border" />
-              <div className="flex flex-col gap-3">
+              <div className="grid md:grid-cols-2 gap-y-3 gap-x-5">
                 <DetailRow label="Bet ID">{bet.data.id}</DetailRow>
                 <DetailRow label="Nonce">{String(bet.data.nonce)}</DetailRow>
                 <DetailRow label="Server Seed Hash">
@@ -227,17 +227,24 @@ const Verify = () => {
                           <DetailRow label="SHA-256 Hash">
                             {expected.hash}
                           </DetailRow>
-                          <hr className="border-border" />
                           <DetailRow label="Algorithm">
                             {gameConfig.algorithm}
                           </DetailRow>
                           <hr className="border-border" />
+                          <div className="flex flex-col gap-1">
+                            <p className="text-sm font-semibold">Breakdown</p>
+                          </div>
                           {gameConfig
                             .explain(expected.hash)
-                            .map(({ label, value }) => (
-                              <DetailRow key={label} label={label}>
-                                <strong>{value}</strong>
-                              </DetailRow>
+                            .map(({ label, value }, key) => (
+                              <div key={key} className="flex items-center">
+                                <p className="font-heading font-bold border-r border-border pl-1.5 pr-4 mr-4 h-10 flex items-center">
+                                  {key + 1}
+                                </p>
+                                <DetailRow label={label}>
+                                  <strong>{value}</strong>
+                                </DetailRow>
+                              </div>
                             ))}
                           <hr className="border-border" />
                           <DetailRow label="Stored Result">
