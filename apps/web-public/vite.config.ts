@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
       port: parseInt(env.PORT || "5000")
     },
     optimizeDeps: {
-      include: ["@repo/types"]
+      include: ["@repo/types", "@repo/games"]
     }
   };
 });

@@ -1,7 +1,7 @@
 import { type LucideIcon, HandCoins } from "lucide-react";
 import { type ComponentType } from "react";
 import { type BetDto, type CoinflipBetDto } from "@repo/types";
-import { coinflip } from "@repo/games/coinflip";
+import { coinflip } from "@repo/games";
 import Coinflip from "./pages/Games/coinflip";
 
 export interface GameConfig {
