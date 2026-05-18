@@ -14,6 +14,7 @@ import {
 import { useBet, useRevealSeeds } from "../../api";
 import { cn } from "@repo/ui/utils";
 import { useSearchParams } from "react-router-dom";
+import { type CoinflipBetDto } from "@repo/types";
 import { GAMES } from "../../config";
 import { BadgeCheck, BadgeX } from "lucide-react";
 
@@ -218,9 +219,8 @@ const Verify = () => {
                   )}
                   {expected &&
                     (() => {
-                      const storedOutcome = gameConfig.getStoredOutcome(
-                        bet.data!
-                      );
+                      const storedOutcome = (bet.data! as CoinflipBetDto)
+                        .coinFlip.landedSide;
                       const matches = storedOutcome === expected.result;
                       return (
                         <div className="flex flex-col gap-3 text-sm">
@@ -230,22 +230,6 @@ const Verify = () => {
                           <DetailRow label="Algorithm">
                             {gameConfig.algorithm}
                           </DetailRow>
-                          <hr className="border-border" />
-                          <div className="flex flex-col gap-1">
-                            <p className="text-sm font-semibold">Breakdown</p>
-                          </div>
-                          {gameConfig
-                            .explain(expected.hash)
-                            .map(({ label, value }, key) => (
-                              <div key={key} className="flex items-center">
-                                <p className="font-heading font-bold border-r border-border pl-1.5 pr-4 mr-4 h-10 flex items-center">
-                                  {key + 1}
-                                </p>
-                                <DetailRow label={label}>
-                                  <strong>{value}</strong>
-                                </DetailRow>
-                              </div>
-                            ))}
                           <hr className="border-border" />
                           <DetailRow label="Stored Result">
                             <strong>{storedOutcome}</strong>

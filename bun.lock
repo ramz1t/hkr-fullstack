@@ -24,6 +24,7 @@
         "@nestjs/platform-express": "11.0.1",
         "@nestjs/swagger": "^11.4.2",
         "@repo/database": "workspace:*",
+        "@repo/games": "workspace:*",
         "@repo/types": "workspace:*",
         "bcryptjs": "^3.0.3",
         "class-transformer": "^0.5.1",
@@ -129,6 +130,7 @@
       "name": "web-public",
       "version": "0.0.0",
       "dependencies": {
+        "@repo/games": "workspace:*",
         "@repo/hooks": "workspace:*",
         "@repo/types": "workspace:*",
         "@repo/ui": "workspace:*",
@@ -205,6 +207,17 @@
         "globals": "^16.5.0",
         "typescript": "^5.9.2",
         "typescript-eslint": "^8.50.0",
+      },
+    },
+    "packages/games": {
+      "name": "@repo/games",
+      "dependencies": {
+        "@repo/types": "workspace:*",
+      },
+      "devDependencies": {
+        "@repo/eslint-config": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "eslint": "^10.4.0",
       },
     },
     "packages/hooks": {
@@ -789,6 +802,8 @@
     "@repo/database": ["@repo/database@workspace:packages/database"],
 
     "@repo/eslint-config": ["@repo/eslint-config@workspace:packages/eslint-config"],
+
+    "@repo/games": ["@repo/games@workspace:packages/games"],
 
     "@repo/hooks": ["@repo/hooks@workspace:packages/hooks"],
 
@@ -3000,8 +3015,6 @@
 
     "web-public/@types/react-dom": ["@types/react-dom@19.2.3", "", { "peerDependencies": { "@types/react": "^19.2.0" } }, "sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ=="],
 
-    "web-public/eslint": ["eslint@10.3.0", "", { "dependencies": { "@eslint-community/eslint-utils": "^4.8.0", "@eslint-community/regexpp": "^4.12.2", "@eslint/config-array": "^0.23.5", "@eslint/config-helpers": "^0.5.5", "@eslint/core": "^1.2.1", "@eslint/plugin-kit": "^0.7.1", "@humanfs/node": "^0.16.6", "@humanwhocodes/module-importer": "^1.0.1", "@humanwhocodes/retry": "^0.4.2", "@types/estree": "^1.0.6", "ajv": "^6.14.0", "cross-spawn": "^7.0.6", "debug": "^4.3.2", "escape-string-regexp": "^4.0.0", "eslint-scope": "^9.1.2", "eslint-visitor-keys": "^5.0.1", "espree": "^11.2.0", "esquery": "^1.7.0", "esutils": "^2.0.2", "fast-deep-equal": "^3.1.3", "file-entry-cache": "^8.0.0", "find-up": "^5.0.0", "glob-parent": "^6.0.2", "ignore": "^5.2.0", "imurmurhash": "^0.1.4", "is-glob": "^4.0.0", "json-stable-stringify-without-jsonify": "^1.0.1", "minimatch": "^10.2.4", "natural-compare": "^1.4.0", "optionator": "^0.9.3" }, "peerDependencies": { "jiti": "*" }, "optionalPeers": ["jiti"], "bin": { "eslint": "bin/eslint.js" } }, "sha512-XbEXaRva5cF0ZQB8w6MluHA0kZZfV2DuCMJ3ozyEOHLwDpZX2Lmm/7Pp0xdJmI0GL1W05VH5VwIFHEm1Vcw2gw=="],
-
     "web-public/eslint-plugin-react-hooks": ["eslint-plugin-react-hooks@7.1.1", "", { "dependencies": { "@babel/core": "^7.24.4", "@babel/parser": "^7.24.4", "hermes-parser": "^0.25.1", "zod": "^3.25.0 || ^4.0.0", "zod-validation-error": "^3.5.0 || ^4.0.0" }, "peerDependencies": { "eslint": "^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0 || ^9.0.0 || ^10.0.0" } }, "sha512-f2I7Gw6JbvCexzIInuSbZpfdQ44D7iqdWX01FKLvrPgqxoE7oMj8clOfto8U6vYiz4yd5oKu39rRSVOe1zRu0g=="],
 
     "web-public/eslint-plugin-react-refresh": ["eslint-plugin-react-refresh@0.5.2", "", { "peerDependencies": { "eslint": "^9 || ^10" } }, "sha512-hmgTH57GfzoTFjVN0yBwTggnsVUF2tcqi7RJZHqi9lIezSs4eFyAMktA68YD4r5kNw1mxyY4dmkyoFDb3FIqrA=="],
@@ -3407,8 +3420,6 @@
     "web-admin/eslint/@eslint/config-helpers": ["@eslint/config-helpers@0.5.5", "", { "dependencies": { "@eslint/core": "^1.2.1" } }, "sha512-eIJYKTCECbP/nsKaaruF6LW967mtbQbsw4JTtSVkUQc9MneSkbrgPJAbKl9nWr0ZeowV8BfsarBmPpBzGelA2w=="],
 
     "web-public/@types/node/undici-types": ["undici-types@7.16.0", "", {}, "sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw=="],
-
-    "web-public/eslint/@eslint/config-helpers": ["@eslint/config-helpers@0.5.5", "", { "dependencies": { "@eslint/core": "^1.2.1" } }, "sha512-eIJYKTCECbP/nsKaaruF6LW967mtbQbsw4JTtSVkUQc9MneSkbrgPJAbKl9nWr0ZeowV8BfsarBmPpBzGelA2w=="],
 
     "webpack/eslint-scope/estraverse": ["estraverse@4.3.0", "", {}, "sha512-39nnKffWz8xN1BU/2c79n9nB9HDzo0niYUqx6xyqUnyoAnQyyWpOTdZEeiCch8BBu515t4wp9ZmgVfVhn9EBpw=="],
 

@@ -12,6 +12,7 @@ import {
   type CoinflipBetDto,
   type PaginatedResult
 } from "@repo/types";
+import { coinflip } from "@repo/games/coinflip";
 import crypto from "crypto";
 
 @Injectable()
@@ -53,10 +54,7 @@ export class BetsService {
       .update(provablyFair.serverSeed + provablyFair.clientSeed + nonce)
       .digest("hex");
 
-    const landedSide: CoinSide =
-      parseInt(hash.substring(0, 2), 16) % 2 === 0
-        ? CoinSide.HEADS
-        : CoinSide.TAILS;
+    const landedSide = coinflip.computeOutcome(hash);
 
     const won = landedSide === side;
     const payout = won ? Math.floor(wager * 2 * +game.rtp) : 0;

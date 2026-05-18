@@ -29,6 +29,7 @@
     "@nestjs/platform-express": "11.0.1",
     "@nestjs/swagger": "^11.4.2",
     "@repo/database": "workspace:*",
+    "@repo/games": "workspace:*",
     "@repo/types": "workspace:*",
     "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",

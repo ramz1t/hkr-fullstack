@@ -1,0 +1,21 @@
+{
+  "name": "@repo/games",
+  "exports": {
+    ".": "./dist/index.js",
+    "./coinflip": "./dist/coinflip.js"
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "dev": "tsc --watch --preserveWatchOutput",
+    "build": "tsc",
+    "lint": "eslint --fix"
+  },
+  "dependencies": {
+    "@repo/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "eslint": "^10.4.0"
+  }
+}
