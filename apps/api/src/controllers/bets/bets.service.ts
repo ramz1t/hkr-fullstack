@@ -47,7 +47,9 @@ export class BetsService {
       throw new NotFoundException("Game not found");
     }
 
-    const nonce = await this.db.client.bet.count({ where: { userId } });
+    const nonce = await this.db.client.bet.count({
+      where: { userId, serverSeedHashUsed: provablyFair.serverSeedHash }
+    });
 
     const hash = crypto
       .createHash("sha256")
