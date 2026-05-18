@@ -1,15 +1,8 @@
 import { Button } from "@repo/ui/button";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@repo/ui/card";
+import { Card, CardContent } from "@repo/ui/card";
 import { FormField } from "@repo/ui/form-field";
 import { useAuth } from "@repo/hooks/use-auth";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { LoginDto } from "@repo/types";
 import { Helmet } from "react-helmet-async";

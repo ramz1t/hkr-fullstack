@@ -42,7 +42,7 @@ const GamePage = () => {
   return (
     <section className="page-container">
       <Helmet>
-        <title>{game.name} | CasinoApp</title>
+        <title>{game.name}</title>
       </Helmet>
       <div>
         <h1 className="text-4xl font-extrabold tracking-tight font-heading flex items-center gap-3">

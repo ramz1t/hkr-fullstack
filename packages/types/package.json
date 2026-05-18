@@ -10,7 +10,8 @@
     "lint": "eslint --fix"
   },
   "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@repo/eslint-config": "workspace:*"
+    "eslint": "^10.4.0"
   }
 }
