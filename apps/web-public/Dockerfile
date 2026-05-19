@@ -29,20 +29,26 @@ RUN bun run build --filter=web-public
 # Runner stage
 FROM nginx:alpine AS runner
 
+# Accept PORT build argument and set ENV
+ARG PORT=3000
+ENV PORT=${PORT}
+ENV NGINX_ENVSUBST_FILTER=PORT
+
 # Copy built static files to Nginx public directory
 COPY --from=builder /app/apps/web-public/dist /usr/share/nginx/html
 
-# Configure Nginx for SPA (React Router) fallback
+# Configure Nginx template for SPA (React Router) fallback
+RUN mkdir -p /etc/nginx/templates
 RUN printf "server {\n\
-    listen 3000;\n\
+    listen \${PORT};\n\
     server_name localhost;\n\
     location / {\n\
         root /usr/share/nginx/html;\n\
         index index.html;\n\
         try_files \$uri \$uri/ /index.html;\n\
     }\n\
-}\n" > /etc/nginx/conf.d/default.conf
+}\n" > /etc/nginx/templates/default.conf.template
 
-EXPOSE 3000
+EXPOSE ${PORT}
 
 CMD ["nginx", "-g", "daemon off;"]
