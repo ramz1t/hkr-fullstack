@@ -1,5 +1,5 @@
 import { CoinSide } from "@repo/types";
-import { Game } from "./base";
+import { Game, type AlgorithmStep } from "./base";
 
 export class CoinflipGame extends Game<CoinSide> {
   readonly algorithm =
@@ -9,6 +9,22 @@ export class CoinflipGame extends Game<CoinSide> {
     return parseInt(hash.substring(0, 2), 16) % 2 === 0
       ? CoinSide.HEADS
       : CoinSide.TAILS;
+  }
+
+  describeSteps(hash: string): AlgorithmStep[] {
+    const firstTwo = hash.substring(0, 2);
+    const decimal = parseInt(firstTwo, 16);
+    const isEven = decimal % 2 === 0;
+
+    return [
+      { instruction: "First 2 hex chars of SHA-256", result: firstTwo },
+      { instruction: "Parse as uint8", result: String(decimal) },
+      { instruction: "Check parity", result: isEven ? "even" : "odd" },
+      {
+        instruction: "Result",
+        result: isEven ? CoinSide.HEADS : CoinSide.TAILS
+      }
+    ];
   }
 }
 

@@ -1,7 +1,7 @@
 import { type LucideIcon, HandCoins } from "lucide-react";
 import { type ComponentType } from "react";
 import { type BetDto, type CoinflipBetDto } from "@repo/types";
-import { coinflip } from "@repo/games";
+import { coinflip, type AlgorithmStep } from "@repo/games";
 import Coinflip from "./pages/Games/coinflip";
 
 export interface GameConfig {
@@ -13,6 +13,7 @@ export interface GameConfig {
   formatBetDetails: (bet: BetDto) => { title: string; value: string }[];
   computeOutcome: (hash: string) => string;
   algorithm: string;
+  describeSteps: (hash: string) => AlgorithmStep[];
 }
 
 export const GAMES: GameConfig[] = [
@@ -30,6 +31,7 @@ export const GAMES: GameConfig[] = [
       ];
     },
     computeOutcome: (hash) => coinflip.computeOutcome(hash),
-    algorithm: coinflip.algorithm
+    algorithm: coinflip.algorithmDescription,
+    describeSteps: (hash) => coinflip.describeSteps(hash)
   }
 ];

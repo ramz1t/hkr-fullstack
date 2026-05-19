@@ -273,6 +273,22 @@ const Verify = () => {
                             {gameConfig.algorithm}
                           </DetailRow>
                           <hr className="border-border" />
+                          <div className="flex flex-col gap-1">
+                            <p className="text-sm font-semibold">Breakdown</p>
+                          </div>
+                          {gameConfig
+                            .describeSteps(expected.hash)
+                            .map((step, i) => (
+                              <div key={i} className="flex items-center">
+                                <p className="font-heading font-bold border-r border-border pl-1.5 pr-4 mr-4 h-10 flex items-center">
+                                  {i + 1}
+                                </p>
+                                <DetailRow label={step.instruction}>
+                                  <strong>{step.result}</strong>
+                                </DetailRow>
+                              </div>
+                            ))}
+                          <hr className="border-border" />
                           <DetailRow label="Stored Result">
                             <strong>{storedOutcome}</strong>
                           </DetailRow>
