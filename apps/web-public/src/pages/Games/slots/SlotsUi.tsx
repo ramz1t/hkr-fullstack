@@ -9,21 +9,20 @@ interface SlotsUiProps {
   result: SlotsBetDto | null;
 }
 
-const SYMBOL_LABEL: Record<SlotSymbol, string> = {
-  [SlotSymbol.DIAMOND]: "💎",
-  [SlotSymbol.SEVEN]: "7",
-  [SlotSymbol.BAR]: "BAR",
-  [SlotSymbol.CHERRY]: "🍒",
-  [SlotSymbol.LEMON]: "🍋"
-};
-
-const SYMBOL_CLASS: Record<SlotSymbol, string> = {
-  [SlotSymbol.DIAMOND]: "text-blue-400",
-  [SlotSymbol.SEVEN]: "text-red-500 text-3xl font-black",
-  [SlotSymbol.BAR]: "text-yellow-500 text-sm font-black tracking-widest",
-  [SlotSymbol.CHERRY]: "text-2xl",
-  [SlotSymbol.LEMON]: "text-2xl"
-};
+const SYMBOL_DISPLAY: Record<SlotSymbol, { label: string; className: string }> =
+  {
+    [SlotSymbol.DIAMOND]: { label: "💎", className: "text-blue-400" },
+    [SlotSymbol.SEVEN]: {
+      label: "7",
+      className: "text-red-500 text-3xl font-black"
+    },
+    [SlotSymbol.BAR]: {
+      label: "BAR",
+      className: "text-yellow-500 text-sm font-black tracking-widest"
+    },
+    [SlotSymbol.CHERRY]: { label: "🍒", className: "text-2xl" },
+    [SlotSymbol.LEMON]: { label: "🍋", className: "text-2xl" }
+  };
 
 const OUTCOME_DISPLAY: Record<
   SlotOutcome,
@@ -89,8 +88,13 @@ const SlotsUi = ({ spinning, showResult, result }: SlotsUiProps) => (
                         ?
                       </span>
                     ) : sym ? (
-                      <span className={cn("text-2xl", SYMBOL_CLASS[sym])}>
-                        {SYMBOL_LABEL[sym]}
+                      <span
+                        className={cn(
+                          "text-2xl",
+                          SYMBOL_DISPLAY[sym].className
+                        )}
+                      >
+                        {SYMBOL_DISPLAY[sym].label}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/20 text-2xl">
