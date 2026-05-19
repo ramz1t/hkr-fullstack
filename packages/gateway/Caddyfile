@@ -5,16 +5,16 @@
     # API requests
     handle /api* {
         uri strip_prefix /api
-        reverse_proxy api:4000
+        reverse_proxy api:${API_PORT}
     }
 
     # Admin UI
     handle_path /admin* {
-        reverse_proxy web-admin:3001
+        reverse_proxy web-admin:${WEB_ADMIN_PORT}
     }
 
     # Public UI (Fallback)
     handle {
-        reverse_proxy web-public:3000
+        reverse_proxy web-public:${WEB_PUBLIC_PORT}
     }
 }
