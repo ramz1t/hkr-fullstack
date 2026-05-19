@@ -47,7 +47,7 @@ export const LoadMoreTrigger = ({
     );
 
   return (
-    <span className="mx-auto min-h-[1px] min-w-[1px] col-span-full">
+    <span className="col-span-full font-semibold font-heading text-center flex justify-center mx-auto min-h-[1px] min-w-[1px] col-span-full">
       {isFetching && "Loading..."}
       {error && "Error"}
       <span

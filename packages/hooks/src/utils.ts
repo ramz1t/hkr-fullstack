@@ -1,4 +1,4 @@
-import type { ApiResponse, JwtPayload } from "@repo/types";
+import { type ApiResponse, type JwtPayload } from "@repo/types";
 
 const TOKEN_EXPIRY_BUFFER_SECONDS = Math.floor(
   Number(import.meta.env.VITE_JWT_ACCESS_TTL ?? 900) / 10

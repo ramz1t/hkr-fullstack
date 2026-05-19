@@ -7,13 +7,21 @@ import {
   DropdownMenuTrigger
 } from "@repo/ui/dropdown-menu";
 import { cn } from "@repo/ui/utils";
-import { ChevronDown, Dice6Icon, HomeIcon, LogOut, User } from "lucide-react";
+import {
+  BadgeCheck,
+  ChevronDown,
+  Dice6Icon,
+  HomeIcon,
+  LogOut,
+  User
+} from "lucide-react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import WalletLink from "./WalletLink";
 
 const NAV_TABS = [
   { label: <HomeIcon />, to: "/" },
   { label: <Dice6Icon />, to: "/games" },
+  { label: <BadgeCheck />, to: "/verify" },
   { label: <WalletLink />, to: "/wallet" }
 ];
 
@@ -42,7 +50,7 @@ const Navbar = () => {
               <NavLink
                 key={to}
                 to={to}
-                end
+                end={to === "/"}
                 className={({ isActive }) =>
                   cn(
                     "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
@@ -69,7 +77,9 @@ const Navbar = () => {
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => void navigate("/profile")}>
+                <DropdownMenuItem
+                  onSelect={() => void navigate("/profile/settings")}
+                >
                   <User />
                   Profile
                 </DropdownMenuItem>

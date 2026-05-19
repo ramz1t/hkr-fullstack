@@ -11,6 +11,7 @@
     "prisma:seed": "bun --filter @repo/database prisma:seed",
     "prisma:reset": "bun --filter @repo/database prisma:reset",
     "prisma:push": "bun --filter @repo/database prisma:push",
+    "prisma:migrate": "bun --filter @repo/database prisma:migrate",
     "clean": "rm -rf node_modules **/node_modules **/dist **/.next **/.turbo **/.cache **/build **/tsconfig.tsbuildinfo .eslintcache"
   },
   "devDependencies": {

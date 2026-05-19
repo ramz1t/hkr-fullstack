@@ -11,6 +11,7 @@ export type PaginatedResult<T> = {
   pagination: PaginationMeta;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isPaginationMeta(value: any): value is PaginationMeta {
   return (
     typeof value === "object" &&
@@ -24,6 +25,7 @@ function isPaginationMeta(value: any): value is PaginationMeta {
 }
 
 export function isPaginatedResult<T = unknown>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any
 ): value is PaginatedResult<T> {
   return (

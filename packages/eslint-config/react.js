@@ -20,7 +20,7 @@ export const reactConfig = [
             "react-hooks": pluginReactHooks,
             "react-refresh": pluginReactRefresh,
         },
-        settings: { react: { version: "detect" } },
+        settings: { react: { version: "19" } },
         rules: {
             ...pluginReactHooks.configs.recommended.rules,
             "react/react-in-jsx-scope": "off",

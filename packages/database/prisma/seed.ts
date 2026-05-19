@@ -55,7 +55,7 @@ async function main() {
 
   await prisma.user.create({
     data: {
-      email: "admin@example.com",
+      email: "admin@casino.com",
       passwordHash: await bcrypt.hash(PASSWORD, 12),
       role: Role.ADMIN,
       provablyFair: {
@@ -71,8 +71,11 @@ async function main() {
   console.log("seeded.");
 }
 
-main().catch(async (error) => {
-  console.error(error);
-  await prisma.$disconnect();
-  process.exit(1);
-});
+main()
+  .catch(async (error) => {
+    console.error(error);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

@@ -7,6 +7,21 @@ import crypto from "crypto";
 export class ProvablyFairService {
   constructor(private readonly db: DatabaseService) {}
 
+  async getCurrent(userId: string): Promise<SeedsDto> {
+    const provablyFair = await this.db.client.provablyFair.findUnique({
+      where: { userId }
+    });
+
+    if (!provablyFair) {
+      throw new NotFoundException("Provably fair not found");
+    }
+
+    return {
+      serverSeedHash: provablyFair.serverSeedHash,
+      clientSeed: provablyFair.clientSeed
+    };
+  }
+
   async seed(userId: string, clientSeed: string): Promise<SeedsDto> {
     const provablyFair = await this.db.client.provablyFair.findUnique({
       where: { userId }
