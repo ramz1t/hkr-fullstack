@@ -234,8 +234,7 @@ const Verify = () => {
                     (() => {
                       const storedOutcome = (bet.data! as CoinflipBetDto)
                         .coinFlip.landedSide;
-                      const outcomeMatches =
-                        storedOutcome === expected.result;
+                      const outcomeMatches = storedOutcome === expected.result;
                       const allValid = expected.seedHashValid && outcomeMatches;
                       return (
                         <div className="flex flex-col gap-3 text-sm">
@@ -247,7 +246,7 @@ const Verify = () => {
                           </DetailRow>
                           <p
                             className={cn(
-                              "text-sm font-semibold flex items-center gap-2",
+                              "text-base font-bold flex items-center gap-2",
                               expected.seedHashValid
                                 ? "text-green-600"
                                 : "text-red-500"
@@ -255,13 +254,13 @@ const Verify = () => {
                           >
                             {expected.seedHashValid ? (
                               <>
-                                <ShieldCheck size={18} />
-                                Seed hash matches — seed is authentic
+                                <ShieldCheck />
+                                Seed hash matches – seed is authentic
                               </>
                             ) : (
                               <>
-                                <ShieldAlert size={18} />
-                                Seed hash mismatch — seed has been tampered with
+                                <ShieldAlert />
+                                Seed hash mismatch – seed has been tampered with
                               </>
                             )}
                           </p>
