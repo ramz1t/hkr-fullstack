@@ -1,5 +1,6 @@
 import { CoinSide } from "@repo/types";
-import { Game, type AlgorithmStep } from "./base";
+import { Game } from "./base";
+import type { AlgorithmStep } from "./base";
 
 export class CoinflipGame extends Game<CoinSide> {
   readonly algorithm =

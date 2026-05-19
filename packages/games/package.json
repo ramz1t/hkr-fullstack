@@ -1,8 +1,7 @@
 {
   "name": "@repo/games",
   "exports": {
-    ".": "./dist/index.js",
-    "./coinflip": "./dist/coinflip.js"
+    ".": "./dist/index.js"
   },
   "types": "./dist/index.d.ts",
   "scripts": {

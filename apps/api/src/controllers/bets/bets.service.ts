@@ -12,8 +12,8 @@ import {
   type CoinflipBetDto,
   type PaginatedResult
 } from "@repo/types";
-import { coinflip } from "@repo/games/coinflip";
 import crypto from "crypto";
+import { coinflip } from "@repo/games";
 
 @Injectable()
 export class BetsService {
