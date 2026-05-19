@@ -10,6 +10,7 @@
     "lint": "eslint --fix"
   },
   "devDependencies": {
+    "@repo/database": "workspace:*",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "eslint": "^10.4.0"

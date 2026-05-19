@@ -18,12 +18,18 @@ import {
 } from "@repo/types";
 import crypto from "crypto";
 import { coinflip, slots } from "@repo/games";
-import { Bet } from "@repo/database";
+import { Game, ProvablyFair } from "@repo/database";
+import type {
+  BetDto,
+  BetWithGameAndOutcomeDto,
+  AnyGameBetDto
+} from "@repo/types";
 
-type BetWithRelations = Bet & {
-  game: { id: string; slug: string };
-  coinFlip: { chosenSide: string; landedSide: string } | null;
-  slotSpin: { reels: unknown; outcome: string } | null;
+type BetContext = {
+  provablyFair: ProvablyFair & { serverSeed: string };
+  game: Game;
+  nonce: number;
+  hash: string;
 };
 
 @Injectable()
@@ -33,11 +39,18 @@ export class BetsService {
     private readonly walletsService: WalletsService
   ) {}
 
+  private readonly SLOT_MULTIPLIERS: Record<SlotOutcome, number> = {
+    [SlotOutcome.JACKPOT]: 100,
+    [SlotOutcome.BIG_WIN]: 10,
+    [SlotOutcome.SMALL_WIN]: 2,
+    [SlotOutcome.LOSS]: 0
+  };
+
   private async resolveBetContext(
     userId: string,
     gameSlug: string,
     wager: number
-  ) {
+  ): Promise<BetContext> {
     if (wager <= 0) {
       throw new BadRequestException("Wager must be positive");
     }
@@ -80,11 +93,8 @@ export class BetsService {
 
   private buildBaseResponseDto(
     bet: { id: string; wager: number; payout: number; nonce: number },
-    context: {
-      provablyFair: { serverSeedHash: string; clientSeed: string };
-      game: { id: string; slug: string };
-    }
-  ) {
+    context: BetContext
+  ): BetDto {
     return {
       id: bet.id,
       gameId: context.game.id,
@@ -102,15 +112,7 @@ export class BetsService {
     userId: string,
     wager: number,
     payout: number,
-    context: {
-      provablyFair: {
-        serverSeed: string;
-        serverSeedHash: string;
-        clientSeed: string;
-      };
-      game: { id: string; slug: string };
-      nonce: number;
-    },
+    context: BetContext,
     gameRelation: Record<string, unknown>
   ) {
     const { provablyFair, game, nonce } = context;
@@ -159,13 +161,6 @@ export class BetsService {
     };
   }
 
-  private readonly SLOT_MULTIPLIERS: Record<SlotOutcome, number> = {
-    [SlotOutcome.JACKPOT]: 100,
-    [SlotOutcome.BIG_WIN]: 10,
-    [SlotOutcome.SMALL_WIN]: 2,
-    [SlotOutcome.LOSS]: 0
-  };
-
   async placeSlotsBet(userId: string, wager: number): Promise<SlotsBetDto> {
     const context = await this.resolveBetContext(userId, "slots", wager);
     const { game, hash } = context;
@@ -189,10 +184,10 @@ export class BetsService {
   }
 
   private serializeBet(
-    bet: BetWithRelations,
+    bet: BetWithGameAndOutcomeDto,
     seedRevealed: boolean
-  ): CoinflipBetDto | SlotsBetDto {
-    const base = {
+  ): AnyGameBetDto {
+    const base: BetDto = {
       id: bet.id,
       gameId: bet.gameId,
       gameSlug: bet.game.slug,
@@ -234,10 +229,7 @@ export class BetsService {
     throw new NotFoundException("Bet result data not found");
   }
 
-  async getBet(
-    userId: string,
-    betId: string
-  ): Promise<CoinflipBetDto | SlotsBetDto> {
+  async getBet(userId: string, betId: string): Promise<AnyGameBetDto> {
     const bet = await this.db.client.bet.findUnique({
       where: { id: betId },
       include: { coinFlip: true, slotSpin: true, game: true }
@@ -266,7 +258,7 @@ export class BetsService {
     page: number,
     pageSize: number,
     gameSlug?: string
-  ): Promise<PaginatedResult<CoinflipBetDto | SlotsBetDto>> {
+  ): Promise<PaginatedResult<AnyGameBetDto>> {
     const game = gameSlug
       ? await this.db.client.game.findUnique({ where: { slug: gameSlug } })
       : null;
@@ -276,7 +268,7 @@ export class BetsService {
       where.gameId = game.id;
     }
 
-    const [betEntries, total] = await Promise.all([
+    const [betEntries, total, provablyFair] = await Promise.all([
       this.db.client.bet.findMany({
         where,
         orderBy: { createdAt: "desc" },
@@ -284,16 +276,17 @@ export class BetsService {
         take: pageSize,
         include: { coinFlip: true, slotSpin: true, game: true }
       }),
-      this.db.client.bet.count({ where })
+      this.db.client.bet.count({ where }),
+      this.db.client.provablyFair.findUnique({
+        where: { userId }
+      })
     ]);
-
-    const provablyFair = await this.db.client.provablyFair.findUnique({
-      where: { userId }
-    });
 
     const data = betEntries.map((bet) => {
       const seedRevealed =
         provablyFair !== null && bet.serverSeedUsed !== provablyFair.serverSeed;
+      // prisma deep-nested types being silly again hahaha
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return this.serializeBet(bet, seedRevealed);
     });
 
