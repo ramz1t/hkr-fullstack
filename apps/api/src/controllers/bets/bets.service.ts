@@ -9,11 +9,16 @@ import { WalletsService } from "../wallets/wallets.service";
 import {
   TransactionType,
   CoinSide,
+  SlotOutcome,
+  SlotSymbol,
+  type BetDto,
   type CoinflipBetDto,
+  type SlotsBetDto,
+  type SlotReels,
   type PaginatedResult
 } from "@repo/types";
 import crypto from "crypto";
-import { coinflip } from "@repo/games";
+import { coinflip, slots } from "@repo/games";
 
 @Injectable()
 export class BetsService {
@@ -108,10 +113,106 @@ export class BetsService {
     };
   }
 
-  async getBet(userId: string, betId: string): Promise<CoinflipBetDto> {
+  private readonly SLOT_MULTIPLIERS: Record<SlotOutcome, number> = {
+    [SlotOutcome.JACKPOT]: 100,
+    [SlotOutcome.BIG_WIN]: 10,
+    [SlotOutcome.SMALL_WIN]: 2,
+    [SlotOutcome.LOSS]: 0
+  };
+
+  async placeSlotsBet(userId: string, wager: number): Promise<SlotsBetDto> {
+    if (wager <= 0) {
+      throw new BadRequestException("Wager must be positive");
+    }
+
+    const provablyFair = await this.db.client.provablyFair.findUnique({
+      where: { userId }
+    });
+
+    if (!provablyFair || !provablyFair.serverSeed) {
+      throw new BadRequestException("Provably fair seed not initialized");
+    }
+
+    const game = await this.db.client.game.findUnique({
+      where: { slug: "slots" }
+    });
+
+    if (!game) {
+      throw new NotFoundException("Game not found");
+    }
+
+    const nonce = await this.db.client.bet.count({
+      where: { userId, serverSeedHashUsed: provablyFair.serverSeedHash }
+    });
+
+    const hash = crypto
+      .createHash("sha256")
+      .update(provablyFair.serverSeed + provablyFair.clientSeed + nonce)
+      .digest("hex");
+
+    const reels = slots.computeReels(hash);
+    const mainLine: [SlotSymbol, SlotSymbol, SlotSymbol] = [
+      reels[0][1],
+      reels[1][1],
+      reels[2][1]
+    ];
+    const outcome = slots.evaluateMainLine(mainLine);
+    const payout = Math.floor(
+      wager * this.SLOT_MULTIPLIERS[outcome] * +game.rtp
+    );
+
+    const balance = (await this.walletsService.getBalance(userId)).balance;
+    if (balance < wager) {
+      throw new BadRequestException("Insufficient balance");
+    }
+
+    const bet = await this.db.client.$transaction(async (tx) => {
+      await tx.transaction.create({
+        data: { userId, type: TransactionType.BET, amount: wager }
+      });
+
+      if (payout > 0) {
+        await tx.transaction.create({
+          data: { userId, type: TransactionType.WIN, amount: payout }
+        });
+      }
+
+      return tx.bet.create({
+        data: {
+          userId,
+          gameId: game.id,
+          serverSeedUsed: provablyFair.serverSeed!,
+          serverSeedHashUsed: provablyFair.serverSeedHash,
+          clientSeedUsed: provablyFair.clientSeed,
+          wager,
+          payout,
+          nonce,
+          slotSpin: { create: { reels, outcome } }
+        }
+      });
+    });
+
+    return {
+      id: bet.id,
+      gameId: game.id,
+      gameSlug: game.slug,
+      wager: bet.wager,
+      payout: bet.payout,
+      nonce: bet.nonce,
+      serverSeed: null,
+      serverSeedHash: provablyFair.serverSeedHash,
+      clientSeed: provablyFair.clientSeed,
+      slots: { reels, mainLine, outcome }
+    };
+  }
+
+  async getBet(
+    userId: string,
+    betId: string
+  ): Promise<CoinflipBetDto | SlotsBetDto> {
     const bet = await this.db.client.bet.findUnique({
       where: { id: betId },
-      include: { coinFlip: true, game: true }
+      include: { coinFlip: true, slotSpin: true, game: true }
     });
 
     if (!bet) {
@@ -122,10 +223,6 @@ export class BetsService {
       throw new ForbiddenException("Access denied");
     }
 
-    if (!bet.coinFlip) {
-      throw new NotFoundException("Bet result data not found");
-    }
-
     const provablyFair = await this.db.client.provablyFair.findUnique({
       where: { userId }
     });
@@ -133,7 +230,7 @@ export class BetsService {
     const seedRevealed =
       provablyFair !== null && bet.serverSeedUsed !== provablyFair.serverSeed;
 
-    return {
+    const base = {
       id: bet.id,
       gameId: bet.gameId,
       gameSlug: bet.game.slug,
@@ -142,12 +239,37 @@ export class BetsService {
       nonce: bet.nonce,
       serverSeed: seedRevealed ? bet.serverSeedUsed : null,
       serverSeedHash: bet.serverSeedHashUsed,
-      clientSeed: bet.clientSeedUsed,
-      coinFlip: {
-        chosenSide: bet.coinFlip.chosenSide as CoinSide,
-        landedSide: bet.coinFlip.landedSide as CoinSide
-      }
+      clientSeed: bet.clientSeedUsed
     };
+
+    if (bet.coinFlip) {
+      return {
+        ...base,
+        coinFlip: {
+          chosenSide: bet.coinFlip.chosenSide as CoinSide,
+          landedSide: bet.coinFlip.landedSide as CoinSide
+        }
+      } satisfies CoinflipBetDto;
+    }
+
+    if (bet.slotSpin) {
+      const reels = bet.slotSpin.reels as SlotReels;
+      const mainLine: [SlotSymbol, SlotSymbol, SlotSymbol] = [
+        reels[0][1],
+        reels[1][1],
+        reels[2][1]
+      ];
+      return {
+        ...base,
+        slots: {
+          reels,
+          mainLine,
+          outcome: bet.slotSpin.outcome as SlotOutcome
+        }
+      } satisfies SlotsBetDto;
+    }
+
+    throw new NotFoundException("Bet result data not found");
   }
 
   async getBets(
@@ -155,7 +277,7 @@ export class BetsService {
     page: number,
     pageSize: number,
     gameSlug?: string
-  ): Promise<PaginatedResult<CoinflipBetDto>> {
+  ): Promise<PaginatedResult<CoinflipBetDto | SlotsBetDto>> {
     const game = gameSlug
       ? await this.db.client.game.findUnique({ where: { slug: gameSlug } })
       : null;
@@ -171,7 +293,7 @@ export class BetsService {
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * pageSize,
         take: pageSize,
-        include: { coinFlip: true, game: true }
+        include: { coinFlip: true, slotSpin: true, game: true }
       }),
       this.db.client.bet.count({ where })
     ]);
@@ -180,31 +302,59 @@ export class BetsService {
       where: { userId }
     });
 
-    const data = betEntries.map((bet) => {
-      const seedRevealed =
-        provablyFair !== null && bet.serverSeedUsed !== provablyFair.serverSeed;
+    const data: Array<CoinflipBetDto | SlotsBetDto | BetDto> = betEntries.map(
+      (bet) => {
+        const seedRevealed =
+          provablyFair !== null &&
+          bet.serverSeedUsed !== provablyFair.serverSeed;
 
-      return {
-        id: bet.id,
-        gameId: bet.gameId,
-        gameSlug: bet.game.slug,
-        wager: bet.wager,
-        payout: bet.payout,
-        nonce: bet.nonce,
-        serverSeed: seedRevealed ? bet.serverSeedUsed : null,
-        serverSeedHash: bet.serverSeedHashUsed,
-        clientSeed: bet.clientSeedUsed,
-        coinFlip: {
-          chosenSide: bet.coinFlip!.chosenSide as CoinSide,
-          landedSide: bet.coinFlip!.landedSide as CoinSide
+        const base = {
+          id: bet.id,
+          gameId: bet.gameId,
+          gameSlug: bet.game.slug,
+          wager: bet.wager,
+          payout: bet.payout,
+          nonce: bet.nonce,
+          serverSeed: seedRevealed ? bet.serverSeedUsed : null,
+          serverSeedHash: bet.serverSeedHashUsed,
+          clientSeed: bet.clientSeedUsed
+        };
+
+        if (bet.coinFlip) {
+          return {
+            ...base,
+            coinFlip: {
+              chosenSide: bet.coinFlip.chosenSide as CoinSide,
+              landedSide: bet.coinFlip.landedSide as CoinSide
+            }
+          } satisfies CoinflipBetDto;
         }
-      };
-    });
+
+        if (bet.slotSpin) {
+          const reels = bet.slotSpin.reels as SlotReels;
+          const mainLine: [SlotSymbol, SlotSymbol, SlotSymbol] = [
+            reels[0][1],
+            reels[1][1],
+            reels[2][1]
+          ];
+          return {
+            ...base,
+            slots: {
+              reels,
+              mainLine,
+              outcome: bet.slotSpin.outcome as SlotOutcome
+            }
+          } satisfies SlotsBetDto;
+        }
+
+        return base;
+      }
+    );
 
     const totalPages = Math.ceil(total / pageSize);
 
     return {
-      data,
+      data: data as (CoinflipBetDto | SlotsBetDto)[],
       pagination: {
         page,
         pageSize,

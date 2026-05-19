@@ -1,8 +1,13 @@
-import { type LucideIcon, HandCoins } from "lucide-react";
+import { type LucideIcon, HandCoins, Cherry } from "lucide-react";
 import { type ComponentType } from "react";
-import { type BetDto, type CoinflipBetDto } from "@repo/types";
-import { coinflip, type AlgorithmStep } from "@repo/games";
+import {
+  type BetDto,
+  type CoinflipBetDto,
+  type SlotsBetDto
+} from "@repo/types";
+import { coinflip, slots, type AlgorithmStep } from "@repo/games";
 import Coinflip from "./pages/Games/coinflip";
+import Slots from "./pages/Games/slots";
 
 export interface GameConfig {
   slug: string;
@@ -35,5 +40,23 @@ export const GAMES: GameConfig[] = [
     getStoredOutcome: (bet) => (bet as CoinflipBetDto).coinFlip.landedSide,
     algorithm: coinflip.algorithm,
     describeSteps: (hash) => coinflip.describeSteps(hash)
+  },
+  {
+    slug: "slots",
+    name: "Slots",
+    description: "Spin the reels – match symbols on the main line to win big",
+    icon: Cherry,
+    component: Slots,
+    formatBetDetails: (bet) => {
+      const b = bet as SlotsBetDto;
+      return [
+        { title: "Outcome", value: b.slots.outcome },
+        { title: "Main Line", value: b.slots.mainLine.join(" | ") }
+      ];
+    },
+    computeOutcome: (hash) => slots.computeOutcome(hash),
+    getStoredOutcome: (bet) => (bet as SlotsBetDto).slots.outcome,
+    algorithm: slots.algorithm,
+    describeSteps: (hash) => slots.describeSteps(hash)
   }
 ];

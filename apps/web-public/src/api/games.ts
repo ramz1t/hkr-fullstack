@@ -3,6 +3,7 @@ import { useAxios } from "@repo/hooks/use-axios";
 import {
   type BetDto,
   type CoinflipBetDto,
+  type SlotsBetDto,
   type ApiResponse,
   type RevealedSeedsDto,
   type SeedsDto,
@@ -84,6 +85,19 @@ export const useSetSeed = () => {
       const res = await axios.post<ApiResponse<SeedsDto>>(
         "/provably-fair/seed",
         { clientSeed }
+      );
+      return res.data.data!;
+    }
+  });
+};
+
+export const useSlotsBet = () => {
+  const axios = useAxios();
+  return useMutation({
+    mutationFn: async ({ wager }: { wager: number }) => {
+      const res = await axios.post<ApiResponse<SlotsBetDto>>(
+        "/games/slots/bet",
+        { wager }
       );
       return res.data.data!;
     }

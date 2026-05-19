@@ -34,6 +34,13 @@ enum CoinSide {
   TAILS
 }
 
+enum SlotOutcome {
+  LOSS
+  SMALL_WIN
+  BIG_WIN
+  JACKPOT
+}
+
 model User {
   id           String        @id @default(uuid())
   email        String        @unique
@@ -96,8 +103,9 @@ model Bet {
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
 
-  coinFlip CoinFlip?
-  diceRoll DiceRoll?
+  coinFlip  CoinFlip?
+  diceRoll  DiceRoll?
+  slotSpin  SlotSpin?
 
   @@index([userId, createdAt])
   @@index([gameId])
@@ -117,6 +125,14 @@ model DiceRoll {
   target Int
   rolled Int
   bet    Bet    @relation(fields: [betId], references: [id], onDelete: Cascade)
+}
+
+model SlotSpin {
+  id      String      @id @default(uuid())
+  betId   String      @unique
+  reels   Json
+  outcome SlotOutcome
+  bet     Bet         @relation(fields: [betId], references: [id], onDelete: Cascade)
 }
 
 model ProvablyFair {
