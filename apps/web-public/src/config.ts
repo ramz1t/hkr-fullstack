@@ -12,6 +12,7 @@ export interface GameConfig {
   component: ComponentType;
   formatBetDetails: (bet: BetDto) => { title: string; value: string }[];
   computeOutcome: (hash: string) => string;
+  getStoredOutcome: (bet: BetDto) => string;
   algorithm: string;
   describeSteps: (hash: string) => AlgorithmStep[];
 }
@@ -31,7 +32,8 @@ export const GAMES: GameConfig[] = [
       ];
     },
     computeOutcome: (hash) => coinflip.computeOutcome(hash),
-    algorithm: coinflip.algorithmDescription,
+    getStoredOutcome: (bet) => (bet as CoinflipBetDto).coinFlip.landedSide,
+    algorithm: coinflip.algorithm,
     describeSteps: (hash) => coinflip.describeSteps(hash)
   }
 ];

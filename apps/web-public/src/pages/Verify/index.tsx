@@ -14,7 +14,6 @@ import {
 import { useBet, useRevealSeeds } from "../../api";
 import { cn } from "@repo/ui/utils";
 import { useSearchParams } from "react-router-dom";
-import { type CoinflipBetDto } from "@repo/types";
 import { GAMES } from "../../config";
 import { BadgeCheck, BadgeX, ShieldCheck, ShieldAlert } from "lucide-react";
 
@@ -232,8 +231,8 @@ const Verify = () => {
                   )}
                   {expected &&
                     (() => {
-                      const storedOutcome = (bet.data! as CoinflipBetDto)
-                        .coinFlip.landedSide;
+                      const storedOutcome =
+                        gameConfig.getStoredOutcome(bet.data!);
                       const outcomeMatches = storedOutcome === expected.result;
                       const allValid = expected.seedHashValid && outcomeMatches;
                       return (
