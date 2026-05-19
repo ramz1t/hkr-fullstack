@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@repo/games": "workspace:*",
     "@repo/ui": "workspace:*",
     "@repo/types": "workspace:*",
     "@repo/hooks": "workspace:*",

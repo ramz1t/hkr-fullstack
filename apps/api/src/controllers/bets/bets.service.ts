@@ -13,6 +13,7 @@ import {
   type PaginatedResult
 } from "@repo/types";
 import crypto from "crypto";
+import { coinflip } from "@repo/games";
 
 @Injectable()
 export class BetsService {
@@ -46,17 +47,16 @@ export class BetsService {
       throw new NotFoundException("Game not found");
     }
 
-    const nonce = await this.db.client.bet.count({ where: { userId } });
+    const nonce = await this.db.client.bet.count({
+      where: { userId, serverSeedHashUsed: provablyFair.serverSeedHash }
+    });
 
     const hash = crypto
       .createHash("sha256")
       .update(provablyFair.serverSeed + provablyFair.clientSeed + nonce)
       .digest("hex");
 
-    const landedSide: CoinSide =
-      parseInt(hash.substring(0, 2), 16) % 2 === 0
-        ? CoinSide.HEADS
-        : CoinSide.TAILS;
+    const landedSide = coinflip.computeOutcome(hash);
 
     const won = landedSide === side;
     const payout = won ? Math.floor(wager * 2 * +game.rtp) : 0;

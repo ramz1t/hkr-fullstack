@@ -1,6 +1,7 @@
-import { type ComponentType } from "react";
 import { type LucideIcon, HandCoins } from "lucide-react";
-import { CoinSide, type BetDto, type CoinflipBetDto } from "@repo/types";
+import { type ComponentType } from "react";
+import { type BetDto, type CoinflipBetDto } from "@repo/types";
+import { coinflip, type AlgorithmStep } from "@repo/games";
 import Coinflip from "./pages/Games/coinflip";
 
 export interface GameConfig {
@@ -9,11 +10,11 @@ export interface GameConfig {
   description: string;
   icon: LucideIcon;
   component: ComponentType;
-  formatBetDetails: (bet: BetDto) => { title: string; value: string }[]; // specific details for Verify page
+  formatBetDetails: (bet: BetDto) => { title: string; value: string }[];
   computeOutcome: (hash: string) => string;
   getStoredOutcome: (bet: BetDto) => string;
-  algorithm: string; // human readable algorithm explanation
-  explain: (hash: string) => { label: string; value: string }[]; // step by step breakdown
+  algorithm: string;
+  describeSteps: (hash: string) => AlgorithmStep[];
 }
 
 export const GAMES: GameConfig[] = [
@@ -30,23 +31,9 @@ export const GAMES: GameConfig[] = [
         { title: "Landed", value: b.coinFlip.landedSide }
       ];
     },
-    computeOutcome: (hash) =>
-      parseInt(hash.substring(0, 2), 16) % 2 === 0
-        ? CoinSide.HEADS
-        : CoinSide.TAILS,
+    computeOutcome: (hash) => coinflip.computeOutcome(hash),
     getStoredOutcome: (bet) => (bet as CoinflipBetDto).coinFlip.landedSide,
-    algorithm:
-      "SHA-256(serverSeed + clientSeed + nonce) - first 2 hex chars as uint8; even = HEADS, odd = TAILS",
-    explain: (hash) => {
-      const firstTwo = hash.substring(0, 2);
-      const decimal = parseInt(firstTwo, 16);
-      const isEven = decimal % 2 === 0;
-      return [
-        { label: "First 2 hex chars", value: firstTwo },
-        { label: "As decimal", value: String(decimal) },
-        { label: "Parity", value: isEven ? "even" : "odd" },
-        { label: "Result", value: isEven ? CoinSide.HEADS : CoinSide.TAILS }
-      ];
-    }
+    algorithm: coinflip.algorithm,
+    describeSteps: (hash) => coinflip.describeSteps(hash)
   }
 ];

@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Param, Body, Query, UseGuards } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  Query,
+  UseGuards
+} from "@nestjs/common";
 import { ApiBody } from "@nestjs/swagger";
 import { BetsService } from "./bets.service";
 import { JwtAccessTokenGuard } from "../../common/guards";
@@ -21,10 +29,7 @@ export class BetsController {
   }
 
   @Get("bets")
-  async getBets(
-    @CurrentUser() user: JwtPayload,
-    @Query() query: GetBetsDto
-  ) {
+  async getBets(@CurrentUser() user: JwtPayload, @Query() query: GetBetsDto) {
     return this.betsService.getBets(
       user.sub,
       query.page,

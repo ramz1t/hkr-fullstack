@@ -15,7 +15,15 @@ import { useBet, useRevealSeeds } from "../../api";
 import { cn } from "@repo/ui/utils";
 import { useSearchParams } from "react-router-dom";
 import { GAMES } from "../../config";
-import { BadgeCheck, BadgeX } from "lucide-react";
+import { BadgeCheck, BadgeX, ShieldCheck, ShieldAlert } from "lucide-react";
+
+const sha256 = async (str: string): Promise<string> => {
+  const enc = new TextEncoder().encode(str);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return [...new Uint8Array(buf)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+};
 
 const Verify = () => {
   const [revealed, setRevealed] = useState<{
@@ -29,6 +37,8 @@ const Verify = () => {
   const [expected, setExpected] = useState<{
     hash: string;
     result: string;
+    seedHash: string;
+    seedHashValid: boolean;
   } | null>(null);
   const [verifying, setVerifying] = useState(false);
 
@@ -58,13 +68,16 @@ const Verify = () => {
     if (!b?.serverSeed || !gameConfig) return;
     setVerifying(true);
     try {
-      const str = b.serverSeed + b.clientSeed + b.nonce;
-      const enc = new TextEncoder().encode(str);
-      const buf = await crypto.subtle.digest("SHA-256", enc);
-      const hash = [...new Uint8Array(buf)]
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-      setExpected({ hash, result: gameConfig.computeOutcome(hash) });
+      const seedHash = await sha256(b.serverSeed);
+      const seedHashValid = seedHash === b.serverSeedHash;
+
+      const hash = await sha256(b.serverSeed + b.clientSeed + b.nonce);
+      setExpected({
+        hash,
+        result: gameConfig.computeOutcome(hash),
+        seedHash,
+        seedHashValid
+      });
     } finally {
       setVerifying(false);
     }
@@ -218,13 +231,40 @@ const Verify = () => {
                   )}
                   {expected &&
                     (() => {
-                      const storedOutcome = gameConfig.getStoredOutcome(
-                        bet.data!
-                      );
-                      const matches = storedOutcome === expected.result;
+                      const storedOutcome =
+                        gameConfig.getStoredOutcome(bet.data!);
+                      const outcomeMatches = storedOutcome === expected.result;
+                      const allValid = expected.seedHashValid && outcomeMatches;
                       return (
                         <div className="flex flex-col gap-3 text-sm">
-                          <DetailRow label="SHA-256 Hash">
+                          <DetailRow label="SHA-256(serverSeed)">
+                            {expected.seedHash}
+                          </DetailRow>
+                          <DetailRow label="Stored Seed Hash">
+                            {bet.data!.serverSeedHash}
+                          </DetailRow>
+                          <p
+                            className={cn(
+                              "text-base font-bold flex items-center gap-2",
+                              expected.seedHashValid
+                                ? "text-green-600"
+                                : "text-red-500"
+                            )}
+                          >
+                            {expected.seedHashValid ? (
+                              <>
+                                <ShieldCheck />
+                                Seed hash matches – seed is authentic
+                              </>
+                            ) : (
+                              <>
+                                <ShieldAlert />
+                                Seed hash mismatch – seed has been tampered with
+                              </>
+                            )}
+                          </p>
+                          <hr className="border-border" />
+                          <DetailRow label="SHA-256(seed + clientSeed + nonce)">
                             {expected.hash}
                           </DetailRow>
                           <DetailRow label="Algorithm">
@@ -235,14 +275,14 @@ const Verify = () => {
                             <p className="text-sm font-semibold">Breakdown</p>
                           </div>
                           {gameConfig
-                            .explain(expected.hash)
-                            .map(({ label, value }, key) => (
-                              <div key={key} className="flex items-center">
+                            .describeSteps(expected.hash)
+                            .map((step, i) => (
+                              <div key={i} className="flex items-center">
                                 <p className="font-heading font-bold border-r border-border pl-1.5 pr-4 mr-4 h-10 flex items-center">
-                                  {key + 1}
+                                  {i + 1}
                                 </p>
-                                <DetailRow label={label}>
-                                  <strong>{value}</strong>
+                                <DetailRow label={step.instruction}>
+                                  <strong>{step.result}</strong>
                                 </DetailRow>
                               </div>
                             ))}
@@ -253,10 +293,10 @@ const Verify = () => {
                           <p
                             className={cn(
                               "text-base font-bold flex items-center gap-2",
-                              matches ? "text-green-600" : "text-red-500"
+                              allValid ? "text-green-600" : "text-red-500"
                             )}
                           >
-                            {matches ? (
+                            {allValid ? (
                               <>
                                 <BadgeCheck />
                                 Result matches the bet outcome
@@ -264,7 +304,9 @@ const Verify = () => {
                             ) : (
                               <>
                                 <BadgeX />
-                                Result does NOT match
+                                {expected.seedHashValid
+                                  ? "Result does NOT match"
+                                  : "Seed verification failed"}
                               </>
                             )}
                           </p>
