@@ -11,7 +11,6 @@ import {
   CoinSide,
   SlotOutcome,
   SlotSymbol,
-  type BetDto,
   type CoinflipBetDto,
   type SlotsBetDto,
   type SlotReels,
@@ -19,6 +18,13 @@ import {
 } from "@repo/types";
 import crypto from "crypto";
 import { coinflip, slots } from "@repo/games";
+import { Bet } from "@repo/database";
+
+type BetWithRelations = Bet & {
+  game: { id: string; slug: string };
+  coinFlip: { chosenSide: string; landedSide: string } | null;
+  slotSpin: { reels: unknown; outcome: string } | null;
+};
 
 @Injectable()
 export class BetsService {
@@ -27,27 +33,28 @@ export class BetsService {
     private readonly walletsService: WalletsService
   ) {}
 
-  async placeCoinFlipBet(
+  private async resolveBetContext(
     userId: string,
-    wager: number,
-    side: CoinSide
-  ): Promise<CoinflipBetDto> {
+    gameSlug: string,
+    wager: number
+  ) {
     if (wager <= 0) {
       throw new BadRequestException("Wager must be positive");
     }
 
-    const provablyFair = await this.db.client.provablyFair.findUnique({
-      where: { userId }
-    });
-
-    if (!provablyFair || !provablyFair.serverSeed) {
-      throw new BadRequestException("Provably fair seed not initialized");
+    const { balance } = await this.walletsService.getBalance(userId);
+    if (balance < wager) {
+      throw new BadRequestException("Insufficient balance");
     }
 
-    const game = await this.db.client.game.findUnique({
-      where: { slug: "coinflip" }
-    });
+    const [provablyFair, game] = await Promise.all([
+      this.db.client.provablyFair.findUnique({ where: { userId } }),
+      this.db.client.game.findUnique({ where: { slug: gameSlug } })
+    ]);
 
+    if (!provablyFair?.serverSeed) {
+      throw new BadRequestException("Provably fair seed not initialized");
+    }
     if (!game) {
       throw new NotFoundException("Game not found");
     }
@@ -61,54 +68,93 @@ export class BetsService {
       .update(provablyFair.serverSeed + provablyFair.clientSeed + nonce)
       .digest("hex");
 
-    const landedSide = coinflip.computeOutcome(hash);
+    return {
+      provablyFair: provablyFair as typeof provablyFair & {
+        serverSeed: string;
+      },
+      game,
+      nonce,
+      hash
+    };
+  }
 
-    const won = landedSide === side;
-    const payout = won ? Math.floor(wager * 2 * +game.rtp) : 0;
-
-    const balance = (await this.walletsService.getBalance(userId)).balance;
-    if (balance < wager) {
-      throw new BadRequestException("Insufficient balance");
+  private buildBaseResponseDto(
+    bet: { id: string; wager: number; payout: number; nonce: number },
+    context: {
+      provablyFair: { serverSeedHash: string; clientSeed: string };
+      game: { id: string; slug: string };
     }
+  ) {
+    return {
+      id: bet.id,
+      gameId: context.game.id,
+      gameSlug: context.game.slug,
+      wager: bet.wager,
+      payout: bet.payout,
+      nonce: bet.nonce,
+      serverSeed: null as string | null,
+      serverSeedHash: context.provablyFair.serverSeedHash,
+      clientSeed: context.provablyFair.clientSeed
+    };
+  }
 
-    const bet = await this.db.client.$transaction(async (tx) => {
+  private async runBetTransaction(
+    userId: string,
+    wager: number,
+    payout: number,
+    context: {
+      provablyFair: {
+        serverSeed: string;
+        serverSeedHash: string;
+        clientSeed: string;
+      };
+      game: { id: string; slug: string };
+      nonce: number;
+    },
+    gameRelation: Record<string, unknown>
+  ) {
+    const { provablyFair, game, nonce } = context;
+    return this.db.client.$transaction(async (tx) => {
       await tx.transaction.create({
         data: { userId, type: TransactionType.BET, amount: wager }
       });
-
-      if (won && payout > 0) {
+      if (payout > 0) {
         await tx.transaction.create({
           data: { userId, type: TransactionType.WIN, amount: payout }
         });
       }
-
       return tx.bet.create({
+        // if someone can fix typing here i'm all hears
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         data: {
           userId,
           gameId: game.id,
-          serverSeedUsed: provablyFair.serverSeed!,
+          serverSeedUsed: provablyFair.serverSeed,
           serverSeedHashUsed: provablyFair.serverSeedHash,
           clientSeedUsed: provablyFair.clientSeed,
           wager,
           payout,
           nonce,
-          coinFlip: {
-            create: { chosenSide: side, landedSide }
-          }
-        }
+          ...gameRelation
+        } as any
       });
     });
+  }
 
+  async placeCoinFlipBet(
+    userId: string,
+    wager: number,
+    side: CoinSide
+  ): Promise<CoinflipBetDto> {
+    const context = await this.resolveBetContext(userId, "coinflip", wager);
+    const { game, hash } = context;
+    const landedSide = coinflip.computeOutcome(hash);
+    const payout = landedSide === side ? Math.floor(wager * 2 * +game.rtp) : 0;
+    const bet = await this.runBetTransaction(userId, wager, payout, context, {
+      coinFlip: { create: { chosenSide: side, landedSide } }
+    });
     return {
-      id: bet.id,
-      gameId: game.id,
-      gameSlug: game.slug,
-      wager: bet.wager,
-      payout: bet.payout,
-      nonce: bet.nonce,
-      serverSeed: null,
-      serverSeedHash: provablyFair.serverSeedHash,
-      clientSeed: provablyFair.clientSeed,
+      ...this.buildBaseResponseDto(bet, context),
       coinFlip: { chosenSide: side, landedSide }
     };
   }
@@ -121,35 +167,8 @@ export class BetsService {
   };
 
   async placeSlotsBet(userId: string, wager: number): Promise<SlotsBetDto> {
-    if (wager <= 0) {
-      throw new BadRequestException("Wager must be positive");
-    }
-
-    const provablyFair = await this.db.client.provablyFair.findUnique({
-      where: { userId }
-    });
-
-    if (!provablyFair || !provablyFair.serverSeed) {
-      throw new BadRequestException("Provably fair seed not initialized");
-    }
-
-    const game = await this.db.client.game.findUnique({
-      where: { slug: "slots" }
-    });
-
-    if (!game) {
-      throw new NotFoundException("Game not found");
-    }
-
-    const nonce = await this.db.client.bet.count({
-      where: { userId, serverSeedHashUsed: provablyFair.serverSeedHash }
-    });
-
-    const hash = crypto
-      .createHash("sha256")
-      .update(provablyFair.serverSeed + provablyFair.clientSeed + nonce)
-      .digest("hex");
-
+    const context = await this.resolveBetContext(userId, "slots", wager);
+    const { game, hash } = context;
     const reels = slots.computeReels(hash);
     const mainLine: [SlotSymbol, SlotSymbol, SlotSymbol] = [
       reels[0][1],
@@ -160,76 +179,19 @@ export class BetsService {
     const payout = Math.floor(
       wager * this.SLOT_MULTIPLIERS[outcome] * +game.rtp
     );
-
-    const balance = (await this.walletsService.getBalance(userId)).balance;
-    if (balance < wager) {
-      throw new BadRequestException("Insufficient balance");
-    }
-
-    const bet = await this.db.client.$transaction(async (tx) => {
-      await tx.transaction.create({
-        data: { userId, type: TransactionType.BET, amount: wager }
-      });
-
-      if (payout > 0) {
-        await tx.transaction.create({
-          data: { userId, type: TransactionType.WIN, amount: payout }
-        });
-      }
-
-      return tx.bet.create({
-        data: {
-          userId,
-          gameId: game.id,
-          serverSeedUsed: provablyFair.serverSeed!,
-          serverSeedHashUsed: provablyFair.serverSeedHash,
-          clientSeedUsed: provablyFair.clientSeed,
-          wager,
-          payout,
-          nonce,
-          slotSpin: { create: { reels, outcome } }
-        }
-      });
+    const bet = await this.runBetTransaction(userId, wager, payout, context, {
+      slotSpin: { create: { reels, outcome } }
     });
-
     return {
-      id: bet.id,
-      gameId: game.id,
-      gameSlug: game.slug,
-      wager: bet.wager,
-      payout: bet.payout,
-      nonce: bet.nonce,
-      serverSeed: null,
-      serverSeedHash: provablyFair.serverSeedHash,
-      clientSeed: provablyFair.clientSeed,
+      ...this.buildBaseResponseDto(bet, context),
       slots: { reels, mainLine, outcome }
     };
   }
 
-  async getBet(
-    userId: string,
-    betId: string
-  ): Promise<CoinflipBetDto | SlotsBetDto> {
-    const bet = await this.db.client.bet.findUnique({
-      where: { id: betId },
-      include: { coinFlip: true, slotSpin: true, game: true }
-    });
-
-    if (!bet) {
-      throw new NotFoundException("Bet not found");
-    }
-
-    if (bet.userId !== userId) {
-      throw new ForbiddenException("Access denied");
-    }
-
-    const provablyFair = await this.db.client.provablyFair.findUnique({
-      where: { userId }
-    });
-
-    const seedRevealed =
-      provablyFair !== null && bet.serverSeedUsed !== provablyFair.serverSeed;
-
+  private serializeBet(
+    bet: BetWithRelations,
+    seedRevealed: boolean
+  ): CoinflipBetDto | SlotsBetDto {
     const base = {
       id: bet.id,
       gameId: bet.gameId,
@@ -272,6 +234,33 @@ export class BetsService {
     throw new NotFoundException("Bet result data not found");
   }
 
+  async getBet(
+    userId: string,
+    betId: string
+  ): Promise<CoinflipBetDto | SlotsBetDto> {
+    const bet = await this.db.client.bet.findUnique({
+      where: { id: betId },
+      include: { coinFlip: true, slotSpin: true, game: true }
+    });
+
+    if (!bet) {
+      throw new NotFoundException("Bet not found");
+    }
+
+    if (bet.userId !== userId) {
+      throw new ForbiddenException("Access denied");
+    }
+
+    const provablyFair = await this.db.client.provablyFair.findUnique({
+      where: { userId }
+    });
+
+    const seedRevealed =
+      provablyFair !== null && bet.serverSeedUsed !== provablyFair.serverSeed;
+
+    return this.serializeBet(bet, seedRevealed);
+  }
+
   async getBets(
     userId: string,
     page: number,
@@ -302,59 +291,16 @@ export class BetsService {
       where: { userId }
     });
 
-    const data: Array<CoinflipBetDto | SlotsBetDto | BetDto> = betEntries.map(
-      (bet) => {
-        const seedRevealed =
-          provablyFair !== null &&
-          bet.serverSeedUsed !== provablyFair.serverSeed;
-
-        const base = {
-          id: bet.id,
-          gameId: bet.gameId,
-          gameSlug: bet.game.slug,
-          wager: bet.wager,
-          payout: bet.payout,
-          nonce: bet.nonce,
-          serverSeed: seedRevealed ? bet.serverSeedUsed : null,
-          serverSeedHash: bet.serverSeedHashUsed,
-          clientSeed: bet.clientSeedUsed
-        };
-
-        if (bet.coinFlip) {
-          return {
-            ...base,
-            coinFlip: {
-              chosenSide: bet.coinFlip.chosenSide as CoinSide,
-              landedSide: bet.coinFlip.landedSide as CoinSide
-            }
-          } satisfies CoinflipBetDto;
-        }
-
-        if (bet.slotSpin) {
-          const reels = bet.slotSpin.reels as SlotReels;
-          const mainLine: [SlotSymbol, SlotSymbol, SlotSymbol] = [
-            reels[0][1],
-            reels[1][1],
-            reels[2][1]
-          ];
-          return {
-            ...base,
-            slots: {
-              reels,
-              mainLine,
-              outcome: bet.slotSpin.outcome as SlotOutcome
-            }
-          } satisfies SlotsBetDto;
-        }
-
-        return base;
-      }
-    );
+    const data = betEntries.map((bet) => {
+      const seedRevealed =
+        provablyFair !== null && bet.serverSeedUsed !== provablyFair.serverSeed;
+      return this.serializeBet(bet, seedRevealed);
+    });
 
     const totalPages = Math.ceil(total / pageSize);
 
     return {
-      data: data as (CoinflipBetDto | SlotsBetDto)[],
+      data,
       pagination: {
         page,
         pageSize,
