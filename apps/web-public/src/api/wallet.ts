@@ -51,7 +51,7 @@ export const useWalletPayment = () => {
   const axios = useAxios();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { action: PaymentAction }) =>
+    mutationFn: (payload: { action: PaymentAction; amount: number }) =>
       axios.post("/wallet/me/payment", payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries([

@@ -28,8 +28,9 @@ const Funds = () => {
   const { mutate, isPending, error } = useWalletPayment();
 
   const handleOperation = useCallback(() => {
-    if (confirm("Here goes payment gateways")) mutate({ action });
-  }, [action, mutate]);
+    if (confirm("Here goes payment gateways"))
+      mutate({ action, amount: parseInt(amount) });
+  }, [action, mutate, amount]);
 
   return (
     <section className="page-container">
@@ -102,7 +103,7 @@ const Funds = () => {
           </div>
           <div>
             <FormField
-              label="Amount"
+              label="Amount (min. 100)"
               type="number"
               min="1"
               placeholder="Enter amount..."
@@ -128,7 +129,7 @@ const Funds = () => {
               !walletAddress ||
               isPending ||
               !amount ||
-              parseInt(amount, 10) <= 0 ||
+              parseInt(amount, 10) <= 100 ||
               (parseInt(amount, 10) > balance &&
                 action === PaymentAction.WITHDRAWAL)
             }
