@@ -2,8 +2,7 @@ import {
   useInfiniteQuery,
   useMutation,
   useQuery,
-  useQueryClient,
-  type InvalidateQueryFilters
+  useQueryClient
 } from "@tanstack/react-query";
 import { useAxios } from "@repo/hooks/use-axios";
 import {
@@ -54,12 +53,10 @@ export const useWalletPayment = () => {
     mutationFn: (payload: { action: PaymentAction; amount: number }) =>
       axios.post("/wallet/me/payment", payload),
     onSuccess: async () => {
-      await queryClient.invalidateQueries([
-        "wallet/balance"
-      ] as InvalidateQueryFilters);
-      await queryClient.invalidateQueries([
-        "wallet/transactions"
-      ] as InvalidateQueryFilters);
+      await queryClient.invalidateQueries({ queryKey: ["wallet/balance"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["wallet/transactions"]
+      });
     }
   });
 };
