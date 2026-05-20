@@ -38,9 +38,78 @@ const features = [
 ];
 
 const team = [
-  { name: "Adam Pisula", role: "Developer", github: "https://github.com/adampisula" },
-  { name: "Timur Ramazanov", role: "Developer", github: "https://github.com/ramz1t" },
-  { name: "Simon Ostini", role: "Developer", github: "https://github.com/b3h3m0th" }
+  {
+    name: "Adam Pisula",
+    role: "Developer",
+    github: "https://github.com/adampisula"
+  },
+  {
+    name: "Timur Ramazanov",
+    role: "Developer",
+    github: "https://github.com/ramz1t"
+  },
+  {
+    name: "Simon Ostini",
+    role: "Developer",
+    github: "https://github.com/b3h3m0th"
+  }
+];
+
+const technologies = [
+  {
+    name: "NestJS",
+    url: "https://nestjs.com",
+    color: "E0234E",
+    logo: "nestjs"
+  },
+  {
+    name: "React",
+    url: "https://react.dev",
+    color: "61DAFB",
+    logo: "react"
+  },
+  {
+    name: "TypeScript",
+    url: "https://typescriptlang.org",
+    color: "3178C6",
+    logo: "typescript"
+  },
+  {
+    name: "Prisma",
+    url: "https://prisma.io",
+    color: "2D3748",
+    logo: "prisma"
+  },
+  {
+    name: "PostgreSQL",
+    url: "https://postgresql.org",
+    color: "4169E1",
+    logo: "postgresql"
+  },
+  {
+    name: "Tailwind CSS",
+    url: "https://tailwindcss.com",
+    color: "06B6D4",
+    logo: "tailwindcss"
+  },
+  {
+    name: "shadcn/ui",
+    url: "https://ui.shadcn.com",
+    color: "000000",
+    logo: "shadcnui"
+  },
+  {
+    name: "Radix UI",
+    url: "https://radix-ui.com",
+    color: "161618",
+    logo: "radixui"
+  },
+  {
+    name: "TanStack Query",
+    url: "https://tanstack.com/query",
+    color: "FF4154",
+    logo: "reactquery"
+  }
 ];
 
 const Home = () => {
@@ -49,7 +118,6 @@ const Home = () => {
       <Helmet>
         <title>CasinoApp — Provably Fair Gaming</title>
       </Helmet>
-
       <section className="relative border-b border-border bg-gradient-to-b from-primary/5 to-background">
         <div className="mx-auto px-4 py-24 md:py-32 container flex flex-col items-center text-center gap-6">
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight font-heading">
@@ -119,62 +187,7 @@ const Home = () => {
           Built With
         </h2>
         <div className="flex flex-wrap justify-center gap-3">
-          {[
-            {
-              name: "NestJS",
-              url: "https://nestjs.com",
-              color: "E0234E",
-              logo: "nestjs"
-            },
-            {
-              name: "React",
-              url: "https://react.dev",
-              color: "61DAFB",
-              logo: "react"
-            },
-            {
-              name: "TypeScript",
-              url: "https://typescriptlang.org",
-              color: "3178C6",
-              logo: "typescript"
-            },
-            {
-              name: "Prisma",
-              url: "https://prisma.io",
-              color: "2D3748",
-              logo: "prisma"
-            },
-            {
-              name: "PostgreSQL",
-              url: "https://postgresql.org",
-              color: "4169E1",
-              logo: "postgresql"
-            },
-            {
-              name: "Tailwind CSS",
-              url: "https://tailwindcss.com",
-              color: "06B6D4",
-              logo: "tailwindcss"
-            },
-            {
-              name: "shadcn/ui",
-              url: "https://ui.shadcn.com",
-              color: "000000",
-              logo: "shadcnui"
-            },
-            {
-              name: "Radix UI",
-              url: "https://radix-ui.com",
-              color: "161618",
-              logo: "radixui"
-            },
-            {
-              name: "TanStack Query",
-              url: "https://tanstack.com/query",
-              color: "FF4154",
-              logo: "reactquery"
-            }
-          ].map((tool) => (
+          {technologies.map((tool) => (
             <a
               key={tool.name}
               href={tool.url}
@@ -198,7 +211,12 @@ const Home = () => {
         </h2>
         <div className="flex flex-wrap justify-center gap-6">
           {team.map((member) => (
-            <a key={member.name} href={member.github} target="_blank" rel="noopener noreferrer">
+            <a
+              key={member.name}
+              href={member.github}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Card
                 size="sm"
                 className="w-48 border-border/60 text-center transition-colors hover:border-primary/50 cursor-pointer"
