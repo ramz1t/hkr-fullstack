@@ -1,11 +1,10 @@
 import { useAxios } from "@repo/hooks/use-axios";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import { Card, CardHeader, CardTitle, CardContent } from "@repo/ui/card";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { RefreshCw, Dice6Icon, CoinsIcon } from "lucide-react";
+import { RefreshCw, ShieldAlert, CoinsIcon, Dice6Icon, Save } from "lucide-react";
 import type { ApiResponse, GameDto } from "@repo/types";
 import { Helmet } from "react-helmet-async";
 import type { AxiosError } from "axios";
@@ -34,17 +33,15 @@ const Games = () => {
     }
   });
 
-  const [editState, setEditState] = useState<
-    Record<string, { isActive: boolean; rtp: number }>
-  >({});
+  const [rtpInputs, setRtpInputs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (games.length > 0) {
-      setEditState((prev) => {
+      setRtpInputs((prev) => {
         const next = { ...prev };
         for (const game of games) {
-          if (!next[game.id]) {
-            next[game.id] = { isActive: game.isActive, rtp: game.rtp };
+          if (next[game.id] === undefined) {
+            next[game.id] = String(Math.round(game.rtp * 100));
           }
         }
         return next;
@@ -52,53 +49,68 @@ const Games = () => {
     }
   }, [games]);
 
-  const updateMutation = useMutation({
+  const toggleMutation = useMutation({
     mutationFn: async ({
       id,
-      data
+      isActive
     }: {
       id: string;
-      data: { isActive?: boolean; rtp?: number };
+      isActive: boolean;
     }) => {
-      await axios.patch(`${baseUrl}/games/${id}`, data);
+      await axios.patch(`${baseUrl}/games/${id}`, { isActive });
     },
     onSuccess: () => {
-      toast.success("Game settings updated");
       queryClient.invalidateQueries({ queryKey: ["admin-games"] });
     },
     onError: (err: AxiosError<ApiResponse<unknown>>) => {
       toast.error(
         err?.response?.data?.error?.message || "Failed to update game"
       );
+      queryClient.invalidateQueries({ queryKey: ["admin-games"] });
+    }
+  });
+
+  const rtpMutation = useMutation({
+    mutationFn: async ({ id, rtp }: { id: string; rtp: number }) => {
+      await axios.patch(`${baseUrl}/games/${id}`, { rtp });
+    },
+    onSuccess: () => {
+      toast.success("RTP updated");
+      queryClient.invalidateQueries({ queryKey: ["admin-games"] });
+    },
+    onError: (err: AxiosError<ApiResponse<unknown>>) => {
+      toast.error(
+        err?.response?.data?.error?.message || "Failed to update RTP"
+      );
+      queryClient.invalidateQueries({ queryKey: ["admin-games"] });
     }
   });
 
   const handleToggle = (game: GameDto) => {
-    const newActive = !editState[game.id].isActive;
-    setEditState((prev) => ({
-      ...prev,
-      [game.id]: { ...prev[game.id], isActive: newActive }
-    }));
-    updateMutation.mutate({ id: game.id, data: { isActive: newActive } });
+    toggleMutation.mutate({ id: game.id, isActive: !game.isActive });
   };
 
-  const handleRtpChange = (gameId: string, value: string) => {
-    const num = parseFloat(value);
-    if (isNaN(num)) return;
-    setEditState((prev) => ({
-      ...prev,
-      [gameId]: { ...prev[gameId], rtp: num }
-    }));
-  };
-
-  const handleSaveRtp = (game: GameDto) => {
-    const rtp = editState[game.id].rtp;
-    if (rtp < 0 || rtp > 1) {
-      toast.error("RTP must be between 0 and 1");
+  const handleRtpBlur = (game: GameDto) => {
+    const raw = rtpInputs[game.id];
+    if (raw === undefined) return;
+    const parsed = parseFloat(raw);
+    if (isNaN(parsed) || parsed < 0 || parsed > 100) {
+      setRtpInputs((prev) => ({
+        ...prev,
+        [game.id]: String(Math.round(game.rtp * 100))
+      }));
+      toast.error("RTP must be between 0 and 100");
       return;
     }
-    updateMutation.mutate({ id: game.id, data: { rtp } });
+    const decimal = parsed / 100;
+    if (decimal === game.rtp) return;
+    rtpMutation.mutate({ id: game.id, rtp: decimal });
   };
+
+  const isToggling = (id: string) =>
+    toggleMutation.isPending && toggleMutation.variables?.id === id;
+  const isSavingRtp = (id: string) =>
+    rtpMutation.isPending && rtpMutation.variables?.id === id;
 
   return (
     <div className="p-4 mx-auto container space-y-5">
@@ -106,104 +118,125 @@ const Games = () => {
         <title>Games | CasinoAdmin</title>
       </Helmet>
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold font-heading">Game Settings</h2>
-        <Button
-          variant="outline"
-          onClick={() => refetch()}
-          disabled={isRefetching || isLoading}
-        >
-          <RefreshCw
-            className={`size-4 ${isRefetching ? "animate-spin text-primary" : ""}`}
-          />
-          <span>Refresh</span>
-        </Button>
-      </div>
-
-      {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <span className="size-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="border-border/60 shadow-xl bg-card/60 backdrop-blur-xl overflow-hidden">
+        <div className="p-5 border-b border-border/50 flex items-center justify-between gap-4">
+          <h3 className="font-bold text-lg font-heading">Game Settings</h3>
+          <Button
+            variant="outline"
+            onClick={() => refetch()}
+            disabled={isRefetching || isLoading}
+          >
+            <RefreshCw
+              className={`size-4 ${isRefetching ? "animate-spin text-primary" : ""}`}
+            />
+            <span>Refresh Data</span>
+          </Button>
         </div>
-      ) : isError ? (
-        <div className="text-destructive text-center py-20">
-          Failed to load games. Ensure administrative privileges are active.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {games.map((game) => {
-            const state = editState[game.id] || game;
-            const Icon = slugIcons[game.slug] || Dice6Icon;
-            const isPending =
-              updateMutation.isPending &&
-              updateMutation.variables?.id === game.id;
-            const rtpChanged = state.rtp !== game.rtp;
 
-            return (
-              <Card key={game.id}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Icon className="size-5" />
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <span className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : isError ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-20 text-destructive">
+            <ShieldAlert className="size-6" />
+            <span className="text-xs font-semibold">
+              Failed to load games. Ensure administrative privileges are active.
+            </span>
+          </div>
+        ) : games.length === 0 ? (
+          <div className="flex items-center justify-center py-20 text-muted-foreground text-xs">
+            No games found.
+          </div>
+        ) : (
+          <div className="divide-y divide-border/50">
+            {games.map((game) => {
+              const Icon = slugIcons[game.slug] || Dice6Icon;
+              const rtpValue = rtpInputs[game.id] ?? String(Math.round(game.rtp * 100));
+              const rtpChanged =
+                parseFloat(rtpValue) / 100 !== game.rtp &&
+                !isNaN(parseFloat(rtpValue));
+
+              return (
+                <div
+                  key={game.id}
+                  className="flex items-center gap-4 px-5 py-3"
+                >
+                  <Icon className="size-4 shrink-0 text-foreground/50" />
+                  <span className="font-heading text-sm font-medium min-w-[5rem]">
                     {game.name}
-                    <span className="text-muted-foreground font-mono text-[11px]">
-                      /{game.slug}
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium">Active</span>
+                  </span>
+                  <span className="font-mono text-[11px] text-muted-foreground/60 -ml-2 mr-auto">
+                    /{game.slug}
+                  </span>
+
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       role="switch"
-                      aria-checked={state.isActive}
+                      aria-checked={game.isActive}
                       onClick={() => handleToggle(game)}
-                      disabled={isPending}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                        state.isActive
+                      disabled={isToggling(game.id)}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                        game.isActive
                           ? "bg-green-500 border-green-500"
                           : "bg-muted border-border"
                       }`}
                     >
                       <span
-                        className={`inline-block size-5 rounded-full bg-white shadow-sm ring-0 transition-transform ${
-                          state.isActive
-                            ? "translate-x-[1.375rem]"
+                        className={`inline-block size-3.5 rounded-full bg-white shadow-sm ring-0 transition-transform ${
+                          game.isActive
+                            ? "translate-x-[1.125rem]"
                             : "translate-x-[1px]"
                         }`}
                       />
                     </button>
+                    <span
+                      className={`text-xs font-medium ${
+                        game.isActive ? "text-green-500" : "text-muted-foreground/60"
+                      }`}
+                    >
+                      {game.isActive ? "Active" : "Inactive"}
+                    </span>
                   </div>
 
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-xs font-medium">RTP</span>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max="1"
-                        value={state.rtp}
-                        onChange={(e) => handleRtpChange(game.id, e.target.value)}
-                        className="w-24 text-right"
-                        disabled={isPending}
-                      />
-                      {rtpChanged && (
-                        <Button
-                          size="xs"
-                          onClick={() => handleSaveRtp(game)}
-                          disabled={isPending}
-                        >
-                          {isPending ? "Saving..." : "Save"}
-                        </Button>
-                      )}
-                    </div>
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={rtpValue}
+                      onChange={(e) =>
+                        setRtpInputs((prev) => ({
+                          ...prev,
+                          [game.id]: e.target.value
+                        }))
+                      }
+                      onBlur={() => handleRtpBlur(game)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          (e.target as HTMLInputElement).blur();
+                        }
+                      }}
+                      className="w-16 h-7 px-2 py-0 text-center font-mono text-xs"
+                      disabled={isSavingRtp(game.id)}
+                    />
+                    <span className="text-xs text-muted-foreground/60 -ml-0.5">
+                      %
+                    </span>
+                    {rtpChanged && (
+                      <Save className="size-3 text-muted-foreground/40" />
+                    )}
+                    {isSavingRtp(game.id) && (
+                      <span className="size-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

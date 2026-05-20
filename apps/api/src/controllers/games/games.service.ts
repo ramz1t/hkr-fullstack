@@ -4,10 +4,12 @@ import type { GameDto } from "@repo/types";
 
 @Injectable()
 export class GamesService {
-  constructor(private readonly db: DatabaseService) { }
+  constructor(private readonly db: DatabaseService) {}
 
   async getAll(): Promise<GameDto[]> {
-    const games = await this.db.client.game.findMany();
+    const games = await this.db.client.game.findMany({
+      orderBy: { name: "asc" }
+    });
 
     return games.map((game) => ({
       id: game.id,
