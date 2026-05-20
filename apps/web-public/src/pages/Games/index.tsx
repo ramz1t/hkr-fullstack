@@ -1,5 +1,3 @@
-import { useAxios } from "@repo/hooks/use-axios";
-import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import {
@@ -11,20 +9,10 @@ import {
 } from "@repo/ui/card";
 import { ArrowRight, Gamepad2 } from "lucide-react";
 import { GAMES } from "../../config";
-import type { GameDto } from "@repo/types";
+import { useActiveGames } from "../../api/games";
 
 const Games = () => {
-  const axios = useAxios();
-  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
-
-  const { data: activeGames, isLoading } = useQuery<GameDto[]>({
-    queryKey: ["active-games"],
-    queryFn: async () => {
-      const res = await axios.get(`${baseUrl}/games`);
-      return res.data?.data || [];
-    },
-    staleTime: 30_000
-  });
+  const { data: activeGames, isLoading } = useActiveGames();
 
   const visible = activeGames
     ? GAMES.filter((g) => activeGames.some((ag) => ag.slug === g.slug && ag.isActive))

@@ -6,6 +6,7 @@ import {
   type ApiResponse,
   type RevealedSeedsDto,
   type SeedsDto,
+  type GameDto,
   CoinSide,
   type AnyGameBetDto
 } from "@repo/types";
@@ -88,6 +89,18 @@ export const useSetSeed = () => {
       );
       return res.data.data!;
     }
+  });
+};
+
+export const useActiveGames = () => {
+  const axios = useAxios();
+  return useQuery<GameDto[]>({
+    queryKey: ["active-games"],
+    queryFn: async () => {
+      const res = await axios.get<ApiResponse<GameDto[]>>("/games");
+      return res.data?.data || [];
+    },
+    staleTime: 30_000
   });
 };
 
