@@ -4,7 +4,13 @@ import { Input } from "@repo/ui/input";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { RefreshCw, ShieldAlert, CoinsIcon, Dice6Icon, Save } from "lucide-react";
+import {
+  RefreshCw,
+  ShieldAlert,
+  CoinsIcon,
+  Dice6Icon,
+  Save
+} from "lucide-react";
 import type { ApiResponse, GameDto } from "@repo/types";
 import { Helmet } from "react-helmet-async";
 import type { AxiosError } from "axios";
@@ -50,13 +56,7 @@ const Games = () => {
   }, [games]);
 
   const toggleMutation = useMutation({
-    mutationFn: async ({
-      id,
-      isActive
-    }: {
-      id: string;
-      isActive: boolean;
-    }) => {
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
       await axios.patch(`${baseUrl}/games/${id}`, { isActive });
     },
     onSuccess: () => {
@@ -152,7 +152,8 @@ const Games = () => {
           <div className="divide-y divide-border/50">
             {games.map((game) => {
               const Icon = slugIcons[game.slug] || Dice6Icon;
-              const rtpValue = rtpInputs[game.id] ?? String(Math.round(game.rtp * 100));
+              const rtpValue =
+                rtpInputs[game.id] ?? String(Math.round(game.rtp * 100));
               const rtpChanged =
                 parseFloat(rtpValue) / 100 !== game.rtp &&
                 !isNaN(parseFloat(rtpValue));
@@ -171,6 +172,15 @@ const Games = () => {
                   </span>
 
                   <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 text-[11px] font-semibold border ${
+                        game.isActive
+                          ? "bg-green-500/10 text-green-500 border-green-500/20"
+                          : "bg-destructive/10 text-destructive border-destructive/20"
+                      }`}
+                    >
+                      {game.isActive ? "Active" : "Inactive"}
+                    </span>
                     <button
                       type="button"
                       role="switch"
@@ -191,13 +201,6 @@ const Games = () => {
                         }`}
                       />
                     </button>
-                    <span
-                      className={`text-xs font-medium ${
-                        game.isActive ? "text-green-500" : "text-muted-foreground/60"
-                      }`}
-                    >
-                      {game.isActive ? "Active" : "Inactive"}
-                    </span>
                   </div>
 
                   <div className="flex items-center gap-1.5">
