@@ -4,7 +4,7 @@ import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { useAuth } from "@repo/hooks/use-auth";
 import { Navbar } from "./components";
 
-const { Login, Users } = lazily(() => import("./pages"));
+const { Login, Users, Games } = lazily(() => import("./pages"));
 
 const ProtectedAdminRoute = () => {
   const { isAuthenticated, user } = useAuth();
@@ -60,6 +60,7 @@ const App = () => {
             />
             <Route element={<ProtectedAdminRoute />}>
               <Route path="/users" element={<Users />} />
+              <Route path="/games" element={<Games />} />
             </Route>
             <Route path="/login" element={<Login />} />
             <Route

@@ -7,6 +7,7 @@ import { UsersModule } from "./controllers/users/users.module";
 import { WalletsModule } from "./controllers/wallets/wallets.module";
 import { ProvablyFairModule } from "./controllers/provably-fair/provably-fair.module";
 import { BetsModule } from "./controllers/bets/bets.module";
+import { GamesModule } from "./controllers/games/games.module";
 import { InterceptorsModule } from "./common/interceptors";
 import { FiltersModule } from "./common/filters";
 import { PipesModule } from "./common/pipes/pipes.module";
@@ -27,7 +28,8 @@ import { PaymentProviderModule } from "./common/payment/payment-provider.module"
     UsersModule,
     WalletsModule,
     ProvablyFairModule,
-    BetsModule
+    BetsModule,
+    GamesModule
   ],
   controllers: [AppController],
   providers: []
