@@ -17,6 +17,7 @@ const PASSWORD = "password1234";
 async function main() {
   await prisma.$connect();
 
+  await prisma.slotSpin.deleteMany();
   await prisma.coinFlip.deleteMany();
   await prisma.diceRoll.deleteMany();
   await prisma.bet.deleteMany();
@@ -28,6 +29,9 @@ async function main() {
 
   await prisma.game.create({
     data: { name: "Coinflip", slug: "coinflip", rtp: 0.97, isActive: true }
+  });
+  await prisma.game.create({
+    data: { name: "Slots", slug: "slots", rtp: 0.95, isActive: true }
   });
 
   const serverSeed = crypto.randomBytes(32).toString("hex");

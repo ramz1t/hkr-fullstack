@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { useAxios } from "@repo/hooks/use-axios";
 import {
-  type BetDto,
   type CoinflipBetDto,
+  type SlotsBetDto,
   type ApiResponse,
   type RevealedSeedsDto,
   type SeedsDto,
-  CoinSide
+  CoinSide,
+  type AnyGameBetDto
 } from "@repo/types";
 
 export const useCoinflipBet = () => {
@@ -27,7 +28,7 @@ export const useBet = (betId: string | null) => {
   return useQuery({
     queryKey: ["bet", betId],
     queryFn: async () => {
-      const res = await axios.get<ApiResponse<BetDto>>(`/bets/${betId}`);
+      const res = await axios.get<ApiResponse<AnyGameBetDto>>(`/bets/${betId}`);
       return res.data.data!;
     },
     enabled: !!betId
@@ -51,7 +52,7 @@ export const useBets = (gameSlug?: string) => {
   return useInfiniteQuery({
     queryKey: ["bets", gameSlug],
     queryFn: async ({ pageParam }) => {
-      const res = await axios.get<ApiResponse<CoinflipBetDto>>("/bets", {
+      const res = await axios.get<ApiResponse<AnyGameBetDto>>("/bets", {
         params: { page: pageParam, pageSize: 10, game: gameSlug }
       });
       return res.data;
@@ -84,6 +85,19 @@ export const useSetSeed = () => {
       const res = await axios.post<ApiResponse<SeedsDto>>(
         "/provably-fair/seed",
         { clientSeed }
+      );
+      return res.data.data!;
+    }
+  });
+};
+
+export const useSlotsBet = () => {
+  const axios = useAxios();
+  return useMutation({
+    mutationFn: async ({ wager }: { wager: number }) => {
+      const res = await axios.post<ApiResponse<SlotsBetDto>>(
+        "/games/slots/bet",
+        { wager }
       );
       return res.data.data!;
     }

@@ -12,7 +12,7 @@ import { BetsService } from "./bets.service";
 import { JwtAccessTokenGuard } from "../../common/guards";
 import { CurrentUser } from "../../common/decorators";
 import type { JwtPayload } from "@repo/types";
-import { PlaceCoinflipBetDto, GetBetsDto } from "./dto";
+import { PlaceCoinflipBetDto, PlaceSlotsBetDto, GetBetsDto } from "./dto";
 
 @Controller()
 @UseGuards(JwtAccessTokenGuard)
@@ -26,6 +26,15 @@ export class BetsController {
     @Body() dto: PlaceCoinflipBetDto
   ) {
     return this.betsService.placeCoinFlipBet(user.sub, dto.wager, dto.side);
+  }
+
+  @Post("games/slots/bet")
+  @ApiBody({ type: PlaceSlotsBetDto })
+  async placeSlotsBet(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: PlaceSlotsBetDto
+  ) {
+    return this.betsService.placeSlotsBet(user.sub, dto.wager);
   }
 
   @Get("bets")

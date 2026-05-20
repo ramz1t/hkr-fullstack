@@ -1,6 +1,7 @@
 import { type CoinflipBetDto, CoinSide } from "@repo/types";
 import { Card, CardContent } from "@repo/ui/card";
 import { cn } from "@repo/ui/utils";
+import { Landmark, UserRound } from "lucide-react";
 
 interface CoinflipUiProps {
   flying: boolean;
@@ -53,11 +54,16 @@ const CoinflipUi = ({ flying, showResult, result, won }: CoinflipUiProps) => (
                 : undefined
             }
           >
+            {/* icons reference based on One US Penny */}
             <div className="coin-face absolute inset-0 rounded-full bg-yellow-400 border-4 border-yellow-500 flex items-center justify-center">
-              <span className="text-lg font-extrabold text-yellow-800">H</span>
+              <span className="text-yellow-800">
+                <UserRound size={40} strokeWidth={3} />
+              </span>
             </div>
             <div className="coin-face coin-back absolute inset-0 rounded-full bg-yellow-500 border-4 border-yellow-600 flex items-center justify-center">
-              <span className="text-lg font-extrabold text-yellow-900">T</span>
+              <span className="text-yellow-900">
+                <Landmark size={40} strokeWidth={3} />
+              </span>
             </div>
           </div>
         </div>

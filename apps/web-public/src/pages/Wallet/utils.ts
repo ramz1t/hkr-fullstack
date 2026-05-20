@@ -19,4 +19,5 @@ export const TYPE_COLOR: Record<TransactionType, string> = {
 export const isDebit = (type: TransactionType) =>
   type === TransactionType.BET || type === TransactionType.WITHDRAWAL;
 
-export const fmt = (n: number | undefined) => (n ? n.toLocaleString() : "");
+export const fmt = (n: number | undefined) =>
+  n !== undefined ? n.toLocaleString() : "";
