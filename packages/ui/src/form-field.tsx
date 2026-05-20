@@ -10,7 +10,7 @@ interface FormFieldProps extends React.ComponentProps<"input"> {
 
 function FormField({ label, hint, id, className, ...props }: FormFieldProps) {
   return (
-    <div className="grid gap-2">
+    <div className="grid gap-2 w-full">
       <div className="flex items-center min-h-5">
         <Label htmlFor={id}>{label}</Label>
         {hint && <div className="ml-auto text-xs">{hint}</div>}

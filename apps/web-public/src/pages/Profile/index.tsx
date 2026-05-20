@@ -1,14 +1,15 @@
 import { Helmet } from "react-helmet-async";
 import { NavLink, Route, Routes } from "react-router-dom";
 import Seeds from "./Seeds";
-import { Wheat, Cog, Laptop } from "lucide-react";
+import { Wheat, Cog, Laptop, PiggyBank } from "lucide-react";
 import { cn } from "@repo/ui/utils";
 import Sessions from "./Sessions";
+import Funds from "./Funds";
 
 const NAV_TABS = [
   { label: "Seeds", icon: Wheat, to: "/profile/seeds" },
   { label: "Sessions", icon: Laptop, to: "/profile/sessions" },
-  { label: "Settings", icon: Cog, to: "/profile/settings" }
+  { label: "Funds", icon: PiggyBank, to: "/profile/funds" }
 ];
 
 const Profile = () => {
@@ -42,6 +43,7 @@ const Profile = () => {
         <Routes>
           <Route path="/seeds" element={<Seeds />} />
           <Route path="/sessions" element={<Sessions />} />
+          <Route path="/funds" element={<Funds />} />
           <Route path="*" element={"Select setting"} />
         </Routes>
       </div>

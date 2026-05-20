@@ -37,46 +37,50 @@ const Seeds = () => {
   };
 
   return (
-    <Card className="m-5">
+    <section className="page-container">
       <Helmet>
         <title>Seeds | CasinoApp</title>
       </Helmet>
-      <CardHeader>
-        <CardTitle>Provably Fair Seeds</CardTitle>
-        <CardDescription>
+      <div>
+        <h1 className="text-4xl font-extrabold tracking-tight font-heading">
+          Provably Fair Seeds
+        </h1>
+        <p className="mt-2 text-muted-foreground">
           Your seeds determine game outcomes. Change your client seed at any
           time.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        {isLoading ? (
-          <div className="h-24 animate-pulse rounded bg-muted" />
-        ) : (
-          <>
-            <DetailRow label="Server Seed Hash">{serverSeedHash}</DetailRow>
-            <DetailRow label="Client Seed">
-              <Input
-                placeholder="Enter your client seed..."
-                className="h-10 font-mono"
-                value={clientSeed}
-                onChange={(e) => setClientSeed(e.target.value)}
-              />
-            </DetailRow>
-            <Button
-              onClick={handleSave}
-              disabled={setSeed.isPending || !clientSeed.trim()}
-            >
-              {setSeed.isPending ? "Saving..." : "Save"}
-            </Button>
-            {setSeed.isError && (
-              <p className="text-sm text-red-500">
-                {setSeed.error?.message ?? "Failed to save"}
-              </p>
-            )}
-          </>
-        )}
-      </CardContent>
-    </Card>
+        </p>
+      </div>
+      <Card>
+        <CardContent className="flex flex-col gap-4">
+          {isLoading ? (
+            <div className="h-24 animate-pulse rounded bg-muted" />
+          ) : (
+            <>
+              <DetailRow label="Server Seed Hash">{serverSeedHash}</DetailRow>
+              <DetailRow label="Client Seed">
+                <Input
+                  placeholder="Enter your client seed..."
+                  className="h-10 font-mono"
+                  value={clientSeed}
+                  onChange={(e) => setClientSeed(e.target.value)}
+                />
+              </DetailRow>
+              <Button
+                onClick={handleSave}
+                disabled={setSeed.isPending || !clientSeed.trim()}
+              >
+                {setSeed.isPending ? "Saving..." : "Save"}
+              </Button>
+              {setSeed.isError && (
+                <p className="text-sm text-red-500">
+                  {setSeed.error?.message ?? "Failed to save"}
+                </p>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </section>
   );
 };
 

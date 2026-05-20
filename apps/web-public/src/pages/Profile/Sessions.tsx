@@ -58,53 +58,63 @@ const Sessions = () => {
   const { data, isLoading, error } = useSessions();
   const { mutate: terminate, isPending } = useTerminateSession();
   return (
-    <ul className="p-5 gap-5 grid md:grid-cols-2">
+    <section className="page-container">
       <Helmet>
         <title>Sessions | CasinoApp</title>
       </Helmet>
-      {isLoading ? (
-        Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-40 animate-pulse rounded bg-muted" />
-        ))
-      ) : error ? (
-        <p className="text-destructive">
-          {data?.error?.message ?? "Failed to get sessions"}
+      <div>
+        <h1 className="text-4xl font-extrabold tracking-tight font-heading">
+          All Sessions
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          Manage your sessions across browsers and devices here
         </p>
-      ) : (
-        data &&
-        data.data?.map((session) => (
-          <li key={session.id}>
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {session.userAgent
-                    ? parseUA(session.userAgent).browser
-                    : "Unknown Browser"}
-                  {" | "}
-                  {session.userAgent
-                    ? parseUA(session.userAgent).os
-                    : "Unknown OS"}
-                </CardTitle>
-              </CardHeader>
-              {session.userAgent && (
-                <CardContent className="flex flex-col gap-1 text-xs text-muted-foreground grow">
-                  {session.userAgent}
-                </CardContent>
-              )}
-              <CardFooter>
-                <Button
-                  disabled={isPending}
-                  variant="destructive"
-                  onClick={() => void terminate(session.id)}
-                >
-                  Terminate
-                </Button>
-              </CardFooter>
-            </Card>
-          </li>
-        ))
-      )}
-    </ul>
+      </div>
+      <ul className="gap-5 grid md:grid-cols-2">
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-40 animate-pulse rounded bg-muted" />
+          ))
+        ) : error ? (
+          <p className="text-destructive">
+            {data?.error?.message ?? "Failed to get sessions"}
+          </p>
+        ) : (
+          data &&
+          data.data?.map((session) => (
+            <li key={session.id}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    {session.userAgent
+                      ? parseUA(session.userAgent).browser
+                      : "Unknown Browser"}
+                    {" | "}
+                    {session.userAgent
+                      ? parseUA(session.userAgent).os
+                      : "Unknown OS"}
+                  </CardTitle>
+                </CardHeader>
+                {session.userAgent && (
+                  <CardContent className="flex flex-col gap-1 text-xs text-muted-foreground grow">
+                    {session.userAgent}
+                  </CardContent>
+                )}
+                <CardFooter>
+                  <Button
+                    disabled={isPending}
+                    variant="destructive"
+                    onClick={() => void terminate(session.id)}
+                  >
+                    Terminate
+                  </Button>
+                </CardFooter>
+              </Card>
+            </li>
+          ))
+        )}
+      </ul>
+    </section>
   );
 };
 
