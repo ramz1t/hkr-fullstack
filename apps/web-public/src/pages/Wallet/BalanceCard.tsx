@@ -1,6 +1,7 @@
-import { Coins } from "lucide-react";
+import { ArrowRight, Coins } from "lucide-react";
 import { fmt } from "./utils";
 import { useWalletBalance } from "../../api";
+import { Link } from "react-router-dom";
 
 const BalanceCard = () => {
   const { data, isLoading, isError } = useWalletBalance();
@@ -22,6 +23,12 @@ const BalanceCard = () => {
           </span>
         )
       )}
+      <Link
+        to="/profile/funds"
+        className="flex items-center gap-2 hover:gap-3 transition-all text-primary font-heading font-semibold w-fit"
+      >
+        Manage <ArrowRight size={16} />
+      </Link>
     </div>
   );
 };

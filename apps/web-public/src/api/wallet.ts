@@ -1,6 +1,15 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from "@tanstack/react-query";
 import { useAxios } from "@repo/hooks/use-axios";
-import { type TransactionDto, type ApiResponse } from "@repo/types";
+import {
+  type TransactionDto,
+  type ApiResponse,
+  PaymentAction
+} from "@repo/types";
 
 export const useWalletTransactions = () => {
   const axios = useAxios();
@@ -33,6 +42,21 @@ export const useWalletBalance = () => {
       const res =
         await axios.get<ApiResponse<{ balance: number }>>("/wallet/me/balance");
       return res.data;
+    }
+  });
+};
+
+export const useWalletPayment = () => {
+  const axios = useAxios();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { action: PaymentAction; amount: number }) =>
+      axios.post("/wallet/me/payment", payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["wallet/balance"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["wallet/transactions"]
+      });
     }
   });
 };
