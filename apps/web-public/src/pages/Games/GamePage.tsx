@@ -2,12 +2,29 @@ import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ArrowLeft, Gamepad2 } from "lucide-react";
 import { GAMES } from "../../config";
+import { useActiveGames } from "../../api/games";
 
 const GamePage = () => {
   const { slug } = useParams<{ slug: string }>();
+  const { data: activeGames, isLoading } = useActiveGames();
   const game = GAMES.find((g) => g.slug === slug);
 
-  if (!game) {
+  const activeSlugs = new Set(
+    activeGames?.filter((g) => g.isActive).map((g) => g.slug) ?? []
+  );
+  const isUnavailable = !isLoading && activeGames && !activeSlugs.has(slug ?? "");
+
+  if (isLoading) {
+    return (
+      <section className="page-container">
+        <div className="flex items-center justify-center py-20">
+          <span className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </section>
+    );
+  }
+
+  if (!game || isUnavailable) {
     return (
       <section className="page-container">
         <Helmet>
