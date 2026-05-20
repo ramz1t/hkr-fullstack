@@ -7,18 +7,11 @@ import toast from "react-hot-toast";
 import {
   RefreshCw,
   ShieldAlert,
-  CoinsIcon,
-  Dice6Icon,
   Save
 } from "lucide-react";
 import type { ApiResponse, GameDto } from "@repo/types";
 import { Helmet } from "react-helmet-async";
 import type { AxiosError } from "axios";
-
-const slugIcons: Record<string, typeof Dice6Icon> = {
-  coinflip: CoinsIcon,
-  slots: Dice6Icon
-};
 
 const Games = () => {
   const axios = useAxios();
@@ -151,7 +144,6 @@ const Games = () => {
         ) : (
           <div className="divide-y divide-border/50">
             {games.map((game) => {
-              const Icon = slugIcons[game.slug] || Dice6Icon;
               const rtpValue =
                 rtpInputs[game.id] ?? String(Math.round(game.rtp * 100));
               const rtpChanged =
@@ -159,14 +151,13 @@ const Games = () => {
                 !isNaN(parseFloat(rtpValue));
 
               return (
-                <div
-                  key={game.id}
-                  className="flex items-center gap-4 px-5 py-3"
-                >
-                  <Icon className="size-4 shrink-0 text-foreground/50" />
-                  <span className="font-heading text-sm font-medium min-w-[5rem]">
-                    {game.name}
-                  </span>
+                  <div
+                    key={game.id}
+                    className="flex items-center gap-4 px-5 py-3"
+                  >
+                    <span className="font-heading text-sm font-medium min-w-[5rem]">
+                      {game.name}
+                    </span>
                   <span className="font-mono text-[11px] text-muted-foreground/60 -ml-2 mr-auto">
                     /{game.slug}
                   </span>

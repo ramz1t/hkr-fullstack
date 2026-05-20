@@ -13,8 +13,7 @@ import { UserRole } from "@repo/types";
 import { UpdateGameDto } from "./dto/update-game.dto";
 
 @Controller("games")
-@UseGuards(JwtAccessTokenGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@UseGuards(JwtAccessTokenGuard)
 export class GamesController {
   constructor(private readonly gamesService: GamesService) { }
 
@@ -24,6 +23,8 @@ export class GamesController {
   }
 
   @Patch(":id")
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
   async updateGame(
     @Param("id") id: string,
     @Body() dto: UpdateGameDto
