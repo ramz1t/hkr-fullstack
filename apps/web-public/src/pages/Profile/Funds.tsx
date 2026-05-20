@@ -124,7 +124,7 @@ const Funds = () => {
             size="lg"
             onClick={handleOperation}
             disabled={
-              !balance ||
+              balance === undefined ||
               !walletType ||
               !walletAddress ||
               isPending ||
@@ -137,7 +137,9 @@ const Funds = () => {
             {isPending ? "Pending..." : "Submit"}
           </Button>
           {error && (
-            <p className="text-sm text-red-500">{error ?? "Bet failed"}</p>
+            <p className="text-sm text-red-500">
+              {error.message ?? "Payment failed"}
+            </p>
           )}
         </CardContent>
       </Card>
