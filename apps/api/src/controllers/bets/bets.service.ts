@@ -14,16 +14,14 @@ import {
   type CoinflipBetDto,
   type SlotsBetDto,
   type SlotReels,
-  type PaginatedResult
+  type PaginatedResult,
+  type BetDto,
+  type BetWithGameAndOutcomeDto,
+  type AnyGameBetDto
 } from "@repo/types";
 import crypto from "crypto";
 import { coinflip, slots } from "@repo/games";
 import { Game, ProvablyFair } from "@repo/database";
-import type {
-  BetDto,
-  BetWithGameAndOutcomeDto,
-  AnyGameBetDto
-} from "@repo/types";
 
 type BetContext = {
   provablyFair: ProvablyFair & { serverSeed: string };
@@ -285,8 +283,6 @@ export class BetsService {
     const data = betEntries.map((bet) => {
       const seedRevealed =
         provablyFair !== null && bet.serverSeedUsed !== provablyFair.serverSeed;
-      // prisma deep-nested types being silly again hahaha
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return this.serializeBet(bet, seedRevealed);
     });
 
