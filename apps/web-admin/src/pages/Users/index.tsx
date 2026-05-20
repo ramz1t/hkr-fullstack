@@ -94,7 +94,6 @@ const Users = () => {
       <Helmet>
         <title>Users | CasinoAdmin</title>
       </Helmet>
-      {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <StatCard
           title="Total Accounts"
@@ -118,12 +117,10 @@ const Users = () => {
         />
       </div>
 
-      {/* Main Table Interface */}
       <div className="border-border/60 shadow-xl bg-card/60 backdrop-blur-xl overflow-hidden">
         <div className="p-5 border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h3 className="font-bold text-lg font-heading">Registered Users</h3>
 
-          {/* Search Input */}
           <div className="flex items-center gap-5">
             <Button
               variant="outline"
@@ -146,7 +143,6 @@ const Users = () => {
           </div>
         </div>
 
-        {/* Table View Container */}
         <Table>
           <TableHeader>
             <TableHeaderRow>

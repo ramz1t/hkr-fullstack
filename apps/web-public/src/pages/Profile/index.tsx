@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { NavLink, Route, Routes } from "react-router-dom";
 import Seeds from "./Seeds";
-import { Wheat, Cog, Laptop, PiggyBank } from "lucide-react";
+import { Wheat, Laptop, PiggyBank } from "lucide-react";
 import { cn } from "@repo/ui/utils";
 import Sessions from "./Sessions";
 import Funds from "./Funds";
