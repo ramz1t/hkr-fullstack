@@ -3,10 +3,7 @@ import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
+  CardContent
 } from "@repo/ui/card";
 import { useSetSeed, useCurrentSeeds } from "../../api";
 import { DetailRow } from "@repo/ui/details-row";

@@ -7,19 +7,11 @@ import {
   DropdownMenuTrigger
 } from "@repo/ui/dropdown-menu";
 import { cn } from "@repo/ui/utils";
-import {
-  BadgeCheck,
-  ChevronDown,
-  Dice6Icon,
-  HomeIcon,
-  LogOut,
-  User
-} from "lucide-react";
+import { BadgeCheck, ChevronDown, Dice6Icon, LogOut, User } from "lucide-react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import WalletLink from "./WalletLink";
 
-const NAV_TABS = [
-  { label: <HomeIcon />, to: "/" },
+const AUTH_TABS = [
   { label: <Dice6Icon />, to: "/games" },
   { label: <BadgeCheck />, to: "/verify" },
   { label: <WalletLink />, to: "/wallet" }
@@ -44,27 +36,25 @@ const Navbar = () => {
           CasinoApp
         </Link>
 
-        {isAuthenticated && (
-          <div className="flex-1 flex items-center justify-center gap-1">
-            {NAV_TABS.map(({ label, to }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={to === "/"}
-                className={({ isActive }) =>
-                  cn(
-                    "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-                    isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )
-                }
-              >
-                {label}
-              </NavLink>
-            ))}
-          </div>
-        )}
+        <div className="flex-1 flex items-center justify-center gap-1">
+          {[...(isAuthenticated ? AUTH_TABS : [])].map(({ label, to }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === "/"}
+              className={({ isActive }) =>
+                cn(
+                  "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
+        </div>
 
         <div className="ml-auto shrink-0">
           {isAuthenticated ? (

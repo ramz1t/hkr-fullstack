@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import { lazily } from "react-lazily";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { Navbar, ProtectedRoute } from "./components";
-const { Login, Wallet, Games, GamePage, Profile, Verify } = lazily(
+const { Home, Login, Wallet, Games, GamePage, Profile, Verify } = lazily(
   () => import("./pages")
 );
 
@@ -13,7 +13,7 @@ const App = () => {
       <main className="md:ml-nav max-md:mt-nav grow flex flex-col">
         <Suspense>
           <Routes>
-            <Route path="/" element={"homepage"} />
+            <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/games" element={<Games />} />
@@ -22,7 +22,7 @@ const App = () => {
               <Route path="/wallet" element={<Wallet />} />
               <Route path="/profile/*" element={<Profile />} />
             </Route>
-            <Route path="*" element={"change to NotFound"} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
       </main>

@@ -27,7 +27,7 @@ const Login = () => {
   const { login, register } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("from") ?? "/";
+  const redirectTo = searchParams.get("from") ?? "/games";
   const [tab, setTab] = useState<"login" | "register">("login");
   const isLogin = tab === "login";
   const [error, setError] = useState<string | null>(null);
