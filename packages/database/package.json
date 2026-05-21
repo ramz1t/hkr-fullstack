@@ -9,11 +9,12 @@
     "dev": "tsc --watch --preserveWatchOutput",
     "build": "tsc",
     "lint": "eslint --fix",
-    "prisma:generate": "prisma generate",
-    "prisma:format": "prisma format",
+    "prisma:generate": "bun prisma generate",
+    "prisma:push": "bun prisma db push --accept-data-loss",
+    "prisma:format": "bun prisma format",
     "prisma:seed": "bun run prisma/seed.ts",
-    "prisma:migrate": "prisma migrate deploy",
-    "prisma:reset": "prisma migrate reset --force"
+    "prisma:migrate": "bun prisma migrate deploy",
+    "prisma:reset": "bun prisma migrate reset --force"
   },
   "prisma": {
     "seed": "bun --env-file=../../.env run prisma/seed.ts"
